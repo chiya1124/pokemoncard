@@ -3,337 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 트레이너 상세 시트 메이커 (사이드바 버전)</title>
+    <title>포켓몬 트레이너 시트 메이커</title>
+    <!-- 캡처 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* 기본 초기화 */
+        * { box-sizing: border-box; }
         body {
             font-family: 'Malgun Gothic', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            height: 100vh; /* 화면 전체 높이 사용 */
+            flex-direction: column;
+            height: 100vh;
             background-color: #f5f7fa;
-            overflow: hidden; /* 전체 스크롤 방지 */
+            overflow: hidden;
         }
 
-        /* [좌측 사이드바 편집창] */
-        .sidebar {
+        /* [1. app-header] 최상단 헤더 바 */
+        .app-header {
+            height: 56px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        .app-header-left { display: flex; align-items: center; gap: 12px; }
+        .app-header-right { display: flex; align-items: center; gap: 8px; }
+        
+        .app-title { font-weight: bold; font-size: 16px; color: #1e293b; letter-spacing: 0.5px; }
+        
+        /* 버튼 스타일들 */
+        button { cursor: pointer; border: none; background: none; transition: all 0.2s; }
+        .panel-toggle-btn {
+            width: 32px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; background: #fff;
+        }
+        .panel-toggle-btn:hover { background: #f8fafc; }
+        #panel-toggle-icon { transition: transform 0.3s; }
+        
+        .save-btn {
+            background-color: #2563eb; color: white; padding: 8px 16px;
+            border-radius: 6px; font-weight: bold; font-size: 13px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .save-btn:hover { background-color: #1d4ed8; }
+        #hub-btn, #tour-trigger-btn { font-size: 16px; padding: 4px 8px; border-radius: 4px; }
+        #hub-btn:hover, #tour-trigger-btn:hover { background: #f1f5f9; }
+
+        /* [2. app-body] 메인 콘텐츠 몸통 컨테이너 */
+        .app-body {
+            display: flex;
+            flex-content: row;
+            flex: 1;
+            height: calc(100vh - 56px);
+            position: relative;
+        }
+
+        /* [3. edit-panel] 좌측 편집 패널 (사이드바) */
+        .edit-panel {
             width: 360px;
             min-width: 360px;
             background-color: #ffffff;
             border-right: 1px solid #e0e0e0;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             height: 100%;
-            z-index: 10;
+            transition: margin-left 0.3s ease, opacity 0.3s ease;
         }
-
-        .sidebar-header {
-            padding: 20px;
-            background-color: #333;
-            color: #fff;
-            margin: 0;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
+        /* 패널이 닫혔을 때 왼쪽으로 숨기는 클래스 */
+        .edit-panel.hide {
+            margin-left: -360px;
+            opacity: 0;
+            pointer-events: none;
         }
-
-        /* 입력 폼 내부 스크롤 가능 구역 */
-        .sidebar-content {
+        .edit-panel-content {
             padding: 20px;
-            overflow-y: auto; /* 내용이 길어지면 사이드바 내부만 스크롤 */
+            overflow-y: auto;
             flex: 1;
         }
 
-        /* [우측 메인 워크스페이스 - 시트 미리보기 영역] */
-        .main-workspace {
+        /* [4. preview-area] 우측 실시간 미리보기 구역 */
+        .preview-area {
             flex: 1;
             padding: 40px;
-            overflow-auto: auto; /* 시트가 크면 바깥 워크스페이스에서 스크롤 */
+            overflow: auto;
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            background-color: #f8fafc;
         }
 
-        /* 캡처 대상 시트 컨테이너 (원본 비율 유지) */
+        /* --- 프리뷰 내부 실제 카드 시트 틀 --- */
         #sheet-container {
-            width: 800px;
-            min-width: 800px;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            box-sizing: border-box;
+            width: 800px; min-width: 800px; background: white;
+            border: 1px solid #cbd5e1; padding: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
-
-        /* --- 시트 내부 스타일 (상단 프로필) --- */
-        .top-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+        .top-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .top-left { width: 60%; }
         .top-right { width: 35%; }
+        .trainer-name { font-size: 36px; font-weight: bold; margin-bottom: 15px; }
+        .quote-box { background: #f1f5f9; border-left: 5px solid #10b981; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; }
+        .main-party-img, .character-img { width: 100%; height: 220px; background: #f8fafc; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; color: #94a3b8; font-size: 13px; margin-top: 15px; }
+        .character-img { height: 180px; margin-bottom: 5px; margin-top: 0; }
+        .profile-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .profile-table th, .profile-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
+        .profile-table th { background-color: #1e293b; color: white; width: 40%; }
         
-        .trainer-name {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
-        }
-        .quote-box {
-            background: #f0f0f0;
-            border-left: 5px solid #4CAF50;
-            padding: 8px 12px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .main-party-img {
-            width: 100%;
-            height: 250px;
-            background: #eef2f5;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px dashed #cbd5e1;
-            color: #64748b;
-        }
-        .character-img {
-            width: 100%;
-            height: 200px;
-            background: #eef2f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-            border: 1px dashed #cbd5e1;
-            color: #64748b;
-        }
-        .profile-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .profile-table th, .profile-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        .profile-table th {
-            background-color: #333;
-            color: white;
-            width: 40%;
-        }
+        .pokemon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; border-top: 2px solid #1e293b; padding-top: 15px; }
+        .pkm-card { border: 1px solid #e2e8f0; text-align: center; font-size: 12px; }
+        .pkm-header { background: #38bdf8; padding: 8px 5px; font-weight: bold; color: white; }
+        .pkm-img-slot { height: 75px; display: flex; align-items: center; justify-content: center; background: #fafafa; font-size: 20px; }
 
-        /* --- 시트 내부 스타일 (하단 포켓몬 그리드) --- */
-        .pokemon-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
-            border-top: 2px solid #333;
-            padding-top: 15px;
-        }
-        .pkm-card {
-            border: 1px solid #ccc;
-            text-align: center;
-            font-size: 12px;
-            background: #fff;
-        }
-        .pkm-header {
-            background: #7fb3d5; 
-            padding: 10px 5px;
-            font-weight: bold;
-            color: white;
-        }
-        .pkm-img-slot {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fafafa;
-            font-size: 24px;
-        }
-        .pkm-info-row {
-            border-top: 1px solid #eee;
-            padding: 5px 2px;
-        }
-        .info-title {
-            font-weight: bold;
-            color: #777;
-            font-size: 11px;
-        }
-        .skill-list {
-            background: #f9f9f9;
-            padding: 5px 0;
-            line-height: 1.5;
-            border-top: 1px solid #eee;
-        }
-
-        /* --- 사이드바 내부 UI 컴포넌트 스타일 --- */
-        .section-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #1a1a1a;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 5px;
-            margin-top: 25px;
-            margin-bottom: 15px;
-        }
-        .control-group {
-            margin-bottom: 12px;
-        }
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            color: #4b5563;
-            margin-bottom: 4px;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px 10px;
-            box-sizing: border-box;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        input:focus {
-            border-color: #3b82f6;
-            outline: none;
-        }
-        .btn-save {
-            width: 100%;
-            padding: 14px;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background 0.2s;
-        }
-        .btn-save:hover { background-color: #1d4ed8; }
+        /* 편집 폼 구성요소 스타일 */
+        .section-title { font-size: 14px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #2563eb; padding-bottom: 4px; margin: 20px 0 12px 0; }
+        .control-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
+        input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        input:focus { border-color: #2563eb; outline: none; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 좌측 사이드바 편집창 영역 -->
-    <div class="sidebar">
-        <div class="sidebar-header">📋 시트 편집 메뉴</div>
-        <div class="sidebar-content">
-            
-            <div class="section-title" style="margin-top:0;">트레이너 기본 정보</div>
-            <div class="control-group">
-                <label>트레이너 이름</label>
-                <input type="text" id="input-name" value="이수연" oninput="syncText('input-name', ['view-name', 'view-p-name'])">
-            </div>
-            <div class="control-group">
-                <label>한 줄 문구 1</label>
-                <input type="text" id="input-q1" value="가자, 바다로." oninput="syncText('input-q1', ['view-q1'])">
-            </div>
-            <div class="control-group">
-                <label>한 줄 문구 2</label>
-                <input type="text" id="input-q2" value="항상 고마워, 밀로틱." oninput="syncText('input-q2', ['view-q2'])">
-            </div>
-            <div class="control-group">
-                <label>성별</label>
-                <input type="text" id="input-gender" value="여성" oninput="syncText('input-gender', ['view-p-gender'])">
-            </div>
-            <div class="control-group">
-                <label>연령 / 나이</label>
-                <input type="text" id="input-age" value="18세" oninput="syncText('input-age', ['view-p-age'])">
-            </div>
-            <div class="control-group">
-                <label>출신지</label>
-                <input type="text" id="input-town" value="마름꽃 마을" oninput="syncText('input-town', ['view-p-town'])">
-            </div>
-
-            <div class="section-title">포켓몬 #1 설정</div>
-            <div class="control-group">
-                <label>포켓몬 이름 및 성별</label>
-                <input type="text" id="input-p1-title" value="밀로틱 ♀" oninput="syncText('input-p1-title', ['p1-title'])">
-            </div>
-            <div class="control-group">
-                <label>타입 명시</label>
-                <input type="text" id="input-p1-type" value="물" oninput="syncText('input-p1-type', ['p1-type'])">
-            </div>
-            <div class="control-group">
-                <label>성격</label>
-                <input type="text" id="input-p1-nature" value="냉정" oninput="syncText('input-p1-nature', ['p1-nature'])">
-            </div>
-            <div class="control-group">
-                <label>특성</label>
-                <input type="text" id="input-p1-ability" value="승기" oninput="syncText('input-p1-ability', ['p1-ability'])">
-            </div>
-            <div class="control-group">
-                <label>지닌 도구</label>
-                <input type="text" id="input-p1-item" value="포커스렌즈" oninput="syncText('input-p1-item', ['p1-item'])">
-            </div>
-            <div class="control-group"><label>기술 1</label><input type="text" id="input-p1-s1" value="하이드로펌프" oninput="syncText('input-p1-s1', ['p1-s1'])"></div>
-            <div class="control-group"><label>기술 2</label><input type="text" id="input-p1-s2" value="열탕" oninput="syncText('input-p1-s2', ['p1-s2'])"></div>
-            <div class="control-group"><label>기술 3</label><input type="text" id="input-p1-s3" value="매혹의보이스" oninput="syncText('input-p1-s3', ['p1-s3'])"></div>
-            <div class="control-group"><label>기술 4</label><input type="text" id="input-p1-s4" value="HP회복" oninput="syncText('input-p1-s4', ['p1-s4'])"></div>
-
-            <button class="btn-save" onclick="downloadSheet()">💾 시트를 이미지로 저장</button>
+    <!-- 1. app-header -->
+    <div class="app-header">
+        <div class="app-header-left">
+            <button class="panel-toggle-btn" id="panel-toggle-btn" onclick="togglePanel()" title="편집 패널 열기/닫기">
+                <svg id="panel-toggle-icon" width="10" height="12" viewBox="0 0 10 12" fill="none">
+                    <path d="M7 1L2 6L7 11" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </button>
+            <div class="app-title">TRAINER CARD MAKER</div>
+            <button id="hub-btn" title="돌딤섬 공방">🪨</button>
+            <button id="tour-trigger-btn" title="사용 가이드">?</button>
+        </div>
+        <div class="app-header-right">
+            <button class="save-btn" onclick="saveAsPNG()">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M6.5 1v7M3.5 5.5L6.5 9l3-3.5M1.5 10.5h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                PNG 저장
+            </button>
         </div>
     </div>
 
-    <!-- 2. 우측 워크스페이스 실시간 미리보기 영역 -->
-    <div class="main-workspace">
-        <div id="sheet-container">
-            <!-- 상단 레이아웃 -->
-            <div class="top-section">
-                <div class="top-left">
-                    <div class="trainer-name" id="view-name">이수연</div>
-                    <div class="quote-box" id="view-q1">가자, 바다로.</div>
-                    <div class="quote-box" id="view-q2">항상 고마워, 밀로틱.</div>
-                    <div class="main-party-img">대형 파티 일러스트 영역</div>
+    <!-- 2. app-body -->
+    <div class="app-body">
+        
+        <!-- 3. edit-panel (좌측 편집 사이드바) -->
+        <div class="edit-panel" id="edit-panel">
+            <div class="edit-panel-content">
+                <div class="section-title" style="margin-top:0;">트레이너 정보 수정</div>
+                <div class="control-group">
+                    <label>트레이너 이름</label>
+                    <input type="text" id="input-name" value="이수연" oninput="syncText('input-name', ['view-name', 'view-p-name'])">
                 </div>
-                
-                <div class="top-right">
-                    <div class="character-img">캐릭터 일러스트</div>
-                    <table class="profile-table">
-                        <tr><th>이름</th><td id="view-p-name">이수연</td></tr>
-                        <tr><th>성별</th><td id="view-p-gender">여성</td></tr>
-                        <tr><th>연령</th><td id="view-p-age">18세</td></tr>
-                        <tr><th>출신지</th><td id="view-p-town">마름꽃 마을</td></tr>
-                    </table>
+                <div class="control-group">
+                    <label>한 줄 문구</label>
+                    <input type="text" id="input-q1" value="가자, 바다로." oninput="syncText('input-q1', ['view-q1'])">
                 </div>
-            </div>
+                <div class="control-group">
+                    <label>나이</label>
+                    <input type="text" id="input-age" value="18세" oninput="syncText('input-age', ['view-p-age'])">
+                </div>
 
-            <!-- 하단 포켓몬 6마리 바둑판 배정 -->
-            <div class="pokemon-grid">
-                <!-- 포켓몬 1 -->
-                <div class="pkm-card">
-                    <div class="pkm-header" id="p1-title">밀로틱 ♀</div>
-                    <div class="pkm-img-slot">🔮</div>
-                    <div class="pkm-info-row"><span class="info-title">타입</span><br><span id="p1-type">물</span></div>
-                    <div class="pkm-info-row"><span class="info-title">성격</span><br><span id="p1-nature">냉정</span></div>
-                    <div class="pkm-info-row"><span class="info-title">특성</span><br><span id="p1-ability">승기</span></div>
-                    <div class="pkm-info-row"><span class="info-title">지닌도구</span><br><span id="p1-item">포커스렌즈</span></div>
-                    <div class="skill-list">
-                        <div id="p1-s1">하이드로펌프</div>
-                        <div id="p1-s2">열탕</div>
-                        <div id="p1-s3">매혹의보이스</div>
-                        <div id="p1-s4">HP회복</div>
-                    </div>
+                <div class="section-title">포켓몬 #1 설정</div>
+                <div class="control-group">
+                    <label>명칭</label>
+                    <input type="text" id="input-p1" value="밀로틱 ♀" oninput="syncText('input-p1', ['p1-title'])">
                 </div>
-                <!-- 나머지 슬롯 (구조 가시성용 배치) -->
-                <div class="pkm-card"><div class="pkm-header">샤미드 ♂</div><div class="pkm-img-slot">💧</div></div>
-                <div class="pkm-card"><div class="pkm-header">글레이시아 ♂</div><div class="pkm-img-slot">❄️</div></div>
-                <div class="pkm-card"><div class="pkm-header">파비코리 ♀</div><div class="pkm-img-slot">☁️</div></div>
-                <div class="pkm-card"><div class="pkm-header">라프라스 ♀</div><div class="pkm-img-slot">🐢</div></div>
-                <div class="pkm-card"><div class="pkm-header">레시라무 -</div><div class="pkm-img-slot">🔥</div></div>
             </div>
         </div>
+
+        <!-- 4. preview-area (우측 워크스페이스) -->
+        <div class="preview-area">
+            <div id="sheet-container">
+                <div class="top-section">
+                    <div class="top-left">
+                        <div class="trainer-name" id="view-name">이수연</div>
+                        <div class="quote-box" id="view-q1">가자, 바다로.</div>
+                        <div class="main-party-img">대형 파티 일러스트 위치</div>
+                    </div>
+                    <div class="top-right">
+                        <div class="character-img">트레이너 일러스트</div>
+                        <table class="profile-table">
+                            <tr><th>이름</th><td id="view-p-name">이수연</td></tr>
+                            <tr><th>연령</th><td id="view-p-age">18세</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pokemon-grid">
+                    <div class="pkm-card"><div class="pkm-header" id="p1-title">밀로틱 ♀</div><div class="pkm-img-slot">🔮</div></div>
+                    <div class="pkm-card"><div class="pkm-header">샤미드 ♂</div><div class="pkm-img-slot">💧</div></div>
+                    <div class="pkm-card"><div class="pkm-header">글레이시아 ♂</div><div class="pkm-img-slot">❄️</div></div>
+                    <div class="pkm-card"><div class="pkm-header">파비코리 ♀</div><div class="pkm-img-slot">☁️</div></div>
+                    <div class="pkm-card"><div class="pkm-header">라프라스 ♀</div><div class="pkm-img-slot">🐢</div></div>
+                    <div class="pkm-card"><div class="pkm-header">레시라무 -</div><div class="pkm-img-slot">🔥</div></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // 글자 동기화 스크립트
+        // 1. 왼쪽 편집 패널(사이드바) 열고 닫기 + 아이콘 회전 기능
+        function togglePanel() {
+            const panel = document.getElementById('edit-panel');
+            const icon = document.getElementById('panel-toggle-icon');
+            
+            panel.classList.toggle('hide');
+            
+            // 패널 상태에 따라 화살표 모양 변경 (< 또는 >)
+            if (panel.classList.contains('hide')) {
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // 2. 입력값 실시간 동기화
         function syncText(inputId, viewIds) {
             const value = document.getElementById(inputId).value;
             viewIds.forEach(id => {
@@ -342,14 +235,13 @@
             });
         }
 
-        // 이미지 파일 다운로드 스크립트
-        function downloadSheet() {
+        // 3. PNG 이미지로 저장하기
+        function saveAsPNG() {
             const sheet = document.getElementById('sheet-container');
-            // 고화질 저장을 위한 캡처 비율 증가 옵션(scale: 2) 추가
             html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'trainer-profile-sheet.png';
-                link.href = canvas.toDataURL();
+                link.download = 'trainer-sheet.png';
+                link.href = canvas.toDataURL('image/png');
                 link.click();
             });
         }
