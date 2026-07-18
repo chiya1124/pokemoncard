@@ -61,7 +61,7 @@
         .nav-icon { font-size: 16px; font-weight: bold; }
         .side-nav-divider { width: 32px; height: 1px; background-color: #e2e8f0; margin: 4px 0; }
 
-        /* 오리지널 스타일 적용 패널 */
+        /* 패널 콘텐츠 영역 */
         .edit-panel-content { flex: 1; height: 100%; overflow: hidden; }
         
         .section-panel { display: none; height: 100%; flex-direction: column; background: #fff; }
@@ -76,7 +76,7 @@
         .section-panel-sub { font-size: 10px; color: #94a3b8; font-weight: bold; margin-top: 2px; padding-left: 30px; }
         .section-panel-body { padding: 20px; overflow-y: auto; flex: 1; }
         
-        .field-row { margin-bottom: 16px; }
+        .field-row { margin-bottom: 16px; position: relative; }
         .field-label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 6px; }
         .field-input {
             width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;
@@ -85,9 +85,7 @@
         .field-input:focus { border-color: #0284c7; outline: none; }
         textarea.field-input { resize: vertical; min-height: 60px; font-family: inherit; }
 
-        /* -------------------------------------------
-           ✨ 포켓몬 서브 스타일 컴포넌트 추가
-        ------------------------------------------- */
+        /* 포켓몬 안내 서브 안내 스타일 */
         .sticker-section-sub ul { margin: 0; padding-left: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; }
         
         /* 스프라이트 모드 버튼 그룹 */
@@ -115,9 +113,10 @@
         .profile-table td { color: #334155; font-weight: 500; }
         
         .pokemon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; border-top: 2px solid #1e293b; padding-top: 15px; }
-        .pkm-card { border: 1px solid #e2e8f0; text-align: center; font-size: 12px; background: #fff; min-height: 120px; }
-        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; transition: background 0.2s; }
-        .pkm-img-slot { height: 75px; display: flex; align-items: center; justify-content: center; background: #fafafa; font-size: 20px; color: #cbd5e1; }
+        .pkm-card { border: 1px solid #e2e8f0; text-align: center; font-size: 12px; background: #fff; min-height: 120px; display: flex; flex-direction: column; }
+        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; }
+        .pkm-img-slot { height: 85px; flex: 1; display: flex; align-items: center; justify-content: center; background: #fafafa; position: relative; overflow: hidden; }
+        .pkm-img-slot img { max-width: 90%; max-height: 90%; object-fit: contain; }
     </style>
 </head>
 <body>
@@ -142,78 +141,43 @@
         
         <!-- 3. edit-panel -->
         <div class="edit-panel" id="edit-panel">
-            
-            <!-- 사이드 아이콘 내비 -->
             <nav class="side-nav">
-                <button class="side-nav-btn active" onclick="switchSection(event, 'name')" title="트레이너">
-                    <span class="nav-icon">T</span>
-                    <span class="nav-label">트레이너</span>
+                <button class="side-nav-btn active" onclick="switchSection(event, 'name')">
+                    <span class="nav-icon">T</span><span class="nav-label">트레이너</span>
                 </button>
-                <button class="side-nav-btn" onclick="switchSection(event, 'pokemon')" title="포켓몬">
+                <button class="side-nav-btn" onclick="switchSection(event, 'pokemon')">
                     <span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">
                         <svg width="13" height="13" viewBox="0 0 100 100">
                             <path d="M2.2,46 A48,48 0 0,1 97.8,46 L71.6,46 A22,22 0 0,0 28.4,46 Z" fill="currentColor"/>
                             <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="currentColor"/>
                             <circle cx="50" cy="50" r="10" fill="currentColor"/>
                         </svg>
-                    </span>
-                    <span class="nav-label">포켓몬</span>
+                    </span><span class="nav-label">포켓몬</span>
                 </button>
                 <div class="side-nav-divider"></div>
-                <button class="side-nav-btn" onclick="switchSection(event, 'image')" title="이미지">
-                    <span class="nav-icon">I</span>
-                    <span class="nav-label">이미지</span>
-                </button>
-                <div class="side-nav-divider"></div>
-                <button class="side-nav-btn" onclick="switchSection(event, 'color')" title="컬러">
-                    <span class="nav-icon">C</span>
-                    <span class="nav-label">컬러</span>
-                </button>
-                <div class="side-nav-divider"></div>
-                <button class="side-nav-btn" onclick="switchSection(event, 'sticker')" title="스티커">
-                    <span class="nav-icon">★</span>
-                    <span class="nav-label">스티커</span>
-                </button>
+                <button class="side-nav-btn" onclick="switchSection(event, 'image')"><span class="nav-icon">I</span><span class="nav-label">이미지</span></button>
+                <button class="side-nav-btn" onclick="switchSection(event, 'color')"><span class="nav-icon">C</span><span class="nav-label">컬러</span></button>
+                <button class="side-nav-btn" onclick="switchSection(event, 'sticker')"><span class="nav-icon">★</span><span class="nav-label">스티커</span></button>
             </nav>
 
-            <!-- 상세 입력 패널 영역 -->
             <div class="edit-panel-content">
-                
-                <!-- [트레이너 정보] 패널 -->
+                <!-- 트레이너 패널 -->
                 <div class="section-panel active" id="sec-name">
                     <div class="section-panel-header">
                         <div class="section-panel-title"><span class="section-panel-badge">T</span>트레이너</div>
                         <div class="section-panel-sub">TRAINER INFO</div>
                     </div>
                     <div class="section-panel-body">
-                        <div class="field-row">
-                            <label class="field-label">트레이너 이름</label>
-                            <input class="field-input" type="text" id="tc-name-input" placeholder="이름을 입력하세요" oninput="syncText('tc-name-input', ['view-name', 'view-p-name'], '트레이너명')">
-                        </div>
-                        <div class="field-row">
-                            <label class="field-label">한 줄 문구</label>
-                            <textarea class="field-input" id="tc-quote-input" placeholder="카드를 장식할 시그니처 대사" oninput="syncText('tc-quote-input', ['view-q1'], '여기에 문구가 표시됩니다.')"></textarea>
-                        </div>
-                        <div class="field-row">
-                            <label class="field-label">나이</label>
-                            <input class="field-input" type="text" id="tc-age-input" placeholder="예: 15세" oninput="syncText('tc-age-input', ['view-p-age'], '-')">
-                        </div>
-                        <div class="field-row">
-                            <label class="field-label">성별</label>
-                            <input class="field-input" type="text" id="tc-gender-input" placeholder="예: 남성 / 여성" oninput="syncText('tc-gender-input', ['view-p-gender'], '-')">
-                        </div>
-                        <div class="field-row">
-                            <label class="field-label">키</label>
-                            <input class="field-input" type="text" id="tc-height-input" placeholder="예: 168cm" oninput="syncText('tc-height-input', ['view-p-height'], '-')">
-                        </div>
-                        <div class="field-row">
-                            <label class="field-label">출신지</label>
-                            <input class="field-input" type="text" id="tc-origin-input" placeholder="예: 관동지방 태초마을" oninput="syncText('tc-origin-input', ['view-p-origin'], '-')">
-                        </div>
+                        <div class="field-row"><label class="field-label">트레이너 이름</label><input class="field-input" type="text" id="tc-name-input" value="트레이너명" oninput="syncText('tc-name-input', ['view-name', 'view-p-name'], '트레이너명')"></div>
+                        <div class="field-row"><label class="field-label">한 줄 문구</label><textarea class="field-input" id="tc-quote-input" oninput="syncText('tc-quote-input', ['view-q1'], '여기에 문구가 표시됩니다.')">여기에 문구가 표시됩니다.</textarea></div>
+                        <div class="field-row"><label class="field-label">나이</label><input class="field-input" type="text" id="tc-age-input" value="15세" oninput="syncText('tc-age-input', ['view-p-age'], '-')"></div>
+                        <div class="field-row"><label class="field-label">성별</label><input class="field-input" type="text" id="tc-gender-input" value="남성" oninput="syncText('tc-gender-input', ['view-p-gender'], '-')"></div>
+                        <div class="field-row"><label class="field-label">키</label><input class="field-input" type="text" id="tc-height-input" value="168cm" oninput="syncText('tc-height-input', ['view-p-height'], '-')"></div>
+                        <div class="field-row"><label class="field-label">출신지</label><input class="field-input" type="text" id="tc-origin-input" value="신오지방" oninput="syncText('tc-origin-input', ['view-p-origin'], '-')"></div>
                     </div>
                 </div>
 
-                <!-- ✨ [포켓몬 엔트리] 패널 이식 완동 -->
+                <!-- 포켓몬 엔트리 패널 -->
                 <div class="section-panel" id="sec-pokemon">
                     <div class="section-panel-header">
                         <div class="section-panel-title">
@@ -223,41 +187,29 @@
                                     <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="white"/>
                                     <circle cx="50" cy="50" r="10" fill="white"/>
                                 </svg>
-                            </span>
-                            포켓몬 엔트리
+                            </span>포켓몬 엔트리
                         </div>
                         <div class="section-panel-sub">POKÉMON ENTRY</div>
                     </div>
                     <div class="section-panel-body">
                         <div class="sticker-section-sub" style="margin-bottom:10px;">
                             <ul>
-                                <li>포켓몬 이름을 한글로 검색하면 자동완성이 표시됩니다.</li>
-                                <li>선택 시 이미지와 타입이 자동으로 시트에 추가됩니다.</li>
-                                <li>이미지 로딩 시간이 조금 있습니다.</li>
-                                <li><span style="color:#7C6FCF; font-weight:700;">⚠ 도트는 비공식 이미지가 포함되어 있습니다.</span></li>
-                                <li><a href="https://pokemonkorea.co.kr/pokedex" target="_blank" rel="noopener" style="color:#64748b;text-decoration:underline;text-underline-offset:2px;">공식 포켓몬 도감</a></li>
+                                <li>포켓몬 한글 이름을 치고 입력칸을 벗어나거나 엔터를 누르세요.</li>
+                                <li>선택 시 이미지와 명칭이 자동으로 시트에 추가됩니다.</li>
+                                <li><span style="color:#7C6FCF; font-weight:700;">⚠ 영문 번역 API를 거쳐 이미지를 파싱해옵니다.</span></li>
                             </ul>
                         </div>
-                        
-                        <!-- 스프라이트 모드 토글 -->
                         <div class="sprite-mode-toggle">
                             <button id="sprite-mode-illust" class="sprite-mode-btn active" onclick="setSpriteMode('illust')">일러스트</button>
                             <button id="sprite-mode-dot" class="sprite-mode-btn" onclick="setSpriteMode('dot')">도트</button>
                         </div>
-                        
-                        <!-- 로딩 배너 -->
-                        <div id="poke-load-banner" style="display:none;"></div>
-                        
-                        <!-- 슬롯 1~6 폼 배치 컨테이너 -->
                         <div id="pokemon-slots-panel"></div>
                     </div>
                 </div>
 
-                <!-- [나머지 더미 공간] -->
-                <div class="section-panel" id="sec-image"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">I</span>이미지</div></div><div class="section-panel-body"><p class="info-msg">📸 이미지 업로드 공간</p></div></div>
-                <div class="section-panel" id="sec-color"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">C</span>컬러</div></div><div class="section-panel-body"><p class="info-msg">🎨 색상 설정 공간</p></div></div>
-                <div class="section-panel" id="sec-sticker"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">★</span>스티커</div></div><div class="section-panel-body"><p class="info-msg">★ 스티커 커스텀 공간</p></div></div>
-
+                <div class="section-panel" id="sec-image"><div class="section-panel-header"><div class="section-panel-title">이미지</div></div><div class="section-panel-body"><p class="info-msg">📸 이미지 설정</p></div></div>
+                <div class="section-panel" id="sec-color"><div class="section-panel-header"><div class="section-panel-title">컬러</div></div><div class="section-panel-body"><p class="info-msg">🎨 컬러 설정</p></div></div>
+                <div class="section-panel" id="sec-sticker"><div class="section-panel-header"><div class="section-panel-title">스티커</div></div><div class="section-panel-body"><p class="info-msg">★ 스티커 설정</p></div></div>
             </div>
         </div>
 
@@ -274,71 +226,118 @@
                         <div class="character-img">트레이너 일러스트</div>
                         <table class="profile-table">
                             <tr><th>이름</th><td id="view-p-name">트레이너명</td></tr>
-                            <tr><th>나이</th><td id="view-p-age">-</td></tr>
-                            <tr><th>성별</th><td id="view-p-gender">-</td></tr>
-                            <tr><th>신장</th><td id="view-p-height">-</td></tr>
-                            <tr><th>출신</th><td id="view-p-origin">-</td></tr>
+                            <tr><th>나이</th><td id="view-p-age">15세</td></tr>
+                            <tr><th>성별</th><td id="view-p-gender">남성</td></tr>
+                            <tr><th>신장</th><td id="view-p-height">168cm</td></tr>
+                            <tr><th>출신</th><td id="view-p-origin">신오지방</td></tr>
                         </table>
                     </div>
                 </div>
 
-                <!-- 실시간 동기화 타겟 grid -->
                 <div class="pokemon-grid">
-                    <div class="pkm-card"><div class="pkm-header" id="p1-title">포켓몬 #1</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header" id="p2-title">포켓몬 #2</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header" id="p3-title">포켓몬 #3</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header" id="p4-title">포켓몬 #4</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header" id="p5-title">포켓몬 #5</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header" id="p6-title">포켓몬 #6</div><div class="pkm-img-slot">?</div></div>
+                    <!-- 각 슬롯별 카드 (헤더 및 이미지 공간 확보) -->
+                    <div class="pkm-card"><div class="pkm-header" id="p1-title">포켓몬 #1</div><div class="pkm-img-slot" id="p1-img">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p2-title">포켓몬 #2</div><div class="pkm-img-slot" id="p2-img">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p3-title">포켓몬 #3</div><div class="pkm-img-slot" id="p3-img">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p4-title">포켓몬 #4</div><div class="pkm-img-slot" id="p4-img">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p5-title">포켓몬 #5</div><div class="pkm-img-slot" id="p5-img">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p6-title">포켓몬 #6</div><div class="pkm-img-slot" id="p6-img">?</div></div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // 초기 로드 시 6개의 포켓몬 입력 슬롯 자동 생성 및 바인딩
+        // 전역 상태 변수 (현재 모드 및 로드된 데이터 캐싱용)
+        let currentSpriteMode = 'illust';
+        const pokemonDataCache = {}; 
+
         window.addEventListener('DOMContentLoaded', () => {
             const slotsPanel = document.getElementById('pokemon-slots-panel');
             let htmlBuffer = '';
-            
             for(let i = 1; i <= 6; i++) {
                 htmlBuffer += `
                     <div class="field-row">
-                        <label class="field-label">포켓몬 ${i} 명칭</label>
-                        <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="예: 피카츄" oninput="syncText('tc-pkm-input-${i}', ['p${i}-title'], '포켓몬 #${i}')">
+                        <label class="field-label">포켓몬 ${i} 이름</label>
+                        <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="예: 피카츄" onchange="fetchPokemonImage(${i})">
                     </div>
                 `;
             }
             slotsPanel.innerHTML = htmlBuffer;
         });
 
-        // 스프라이트 모드 (일러스트 / 도트) 토글 핸들러
-        function setSpriteMode(mode) {
-            document.getElementById('sprite-mode-illust').classList.remove('active');
-            document.getElementById('sprite-mode-dot').classList.remove('active');
-            
-            if(mode === 'illust') {
-                document.getElementById('sprite-mode-illust').classList.add('active');
-            } else {
-                document.getElementById('sprite-mode-dot').classList.add('active');
+        // ✨ 핵심: 한글명을 받아 PokeAPI 영어 이름 매핑 후 이미지 세팅하는 비동기 함수
+        async function fetchPokemonImage(slotIndex) {
+            const inputVal = document.getElementById(`tc-pkm-input-${slotIndex}`).value.trim();
+            const headerEl = document.getElementById(`p${slotIndex}-title`);
+            const imgSlotEl = document.getElementById(`p${slotIndex}-img`);
+
+            if (!inputVal) {
+                headerEl.innerText = `포켓몬 #${slotIndex}`;
+                imgSlotEl.innerHTML = '?';
+                delete pokemonDataCache[slotIndex];
+                return;
             }
-            // 이후 데이터 API 연동 시 분기 로직이 들어갈 영역입니다.
+
+            headerEl.innerText = inputVal;
+            imgSlotEl.innerHTML = '...';
+
+            try {
+                // 1단계: 한글 이름을 통해 종(species) 데이터를 먼저 조회하여 내부 영어 ID 추출
+                const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(inputVal.toLowerCase())}/`);
+                if(!speciesResponse.ok) throw new Error('Not Found');
+                const speciesData = await speciesResponse.json();
+                
+                // 2단계: 추출된 영어 고유 ID/명칭으로 실제 스프라이트 상세 객체 호출
+                const pokeResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesData.id}/`);
+                const pokeData = await pokeResponse.json();
+
+                // 캐시에 저장하여 모드 전환(일러스트 <-> 도트) 시 바로 활용
+                pokemonDataCache[slotIndex] = {
+                    illust: pokeData.sprites.other['official-artwork'].front_default,
+                    dot: pokeData.sprites.front_default || pokeData.sprites.front_shiny
+                };
+
+                renderSlotImage(slotIndex);
+            } catch (error) {
+                imgSlotEl.innerHTML = '❌';
+                console.error('포켓몬 데이터 매핑 실패:', error);
+            }
         }
 
-        // 세로 내비게이션 전환 스크립트
-        function switchSection(event, sectionName) {
-            const buttons = document.querySelectorAll('.side-nav-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+        // 현재 모드(일러스트/도트)에 맞춰 이미지 태그를 주입하는 헬퍼 함수
+        function renderSlotImage(slotIndex) {
+            const imgSlotEl = document.getElementById(`p${slotIndex}-img`);
+            const cache = pokemonDataCache[slotIndex];
+            if (!cache) return;
 
-            const panels = document.querySelectorAll('.section-panel');
-            panels.forEach(p => p.classList.remove('active'));
+            const targetUrl = currentSpriteMode === 'illust' ? cache.illust : cache.dot;
+            if (targetUrl) {
+                imgSlotEl.innerHTML = `<img src="${targetUrl}" alt="pokemon">`;
+            } else {
+                imgSlotEl.innerHTML = '❔';
+            }
+        }
+
+        // 토글 버튼 누를 때 전체 슬롯 갱신
+        function setSpriteMode(mode) {
+            currentSpriteMode = mode;
+            document.getElementById('sprite-mode-illust').classList.toggle('active', mode === 'illust');
+            document.getElementById('sprite-mode-dot').classList.toggle('active', mode === 'dot');
             
+            for(let i = 1; i <= 6; i++) {
+                renderSlotImage(i);
+            }
+        }
+
+        // UI 기본 인터랙션 스크립트
+        function switchSection(event, sectionName) {
+            document.querySelectorAll('.side-nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
             document.getElementById(`sec-${sectionName}`).classList.add('active');
         }
 
-        // 패널 열고 닫기
         function togglePanel() {
             const panel = document.getElementById('edit-panel');
             const icon = document.getElementById('panel-toggle-icon');
@@ -346,7 +345,6 @@
             icon.style.transform = panel.classList.contains('hide') ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
-        // 텍스트 실시간 연동
         function syncText(inputId, viewIds, defaultText) {
             const value = document.getElementById(inputId).value;
             viewIds.forEach(id => {
@@ -355,7 +353,6 @@
             });
         }
 
-        // PNG 저장
         function saveAsPNG() {
             const sheet = document.getElementById('sheet-container');
             html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
