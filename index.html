@@ -76,24 +76,38 @@
         .section-panel-sub { font-size: 10px; color: #94a3b8; font-weight: bold; margin-top: 2px; padding-left: 30px; }
         .section-panel-body { padding: 20px; overflow-y: auto; flex: 1; }
         
+        /* 인풋 래퍼 및 드롭다운 스타일 디자인 추가 */
         .field-row { margin-bottom: 16px; position: relative; }
         .field-label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 6px; }
+        .input-wrap { position: relative; }
         .field-input {
             width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;
             font-size: 13px; color: #1e293b; background: #fff; transition: border-color 0.2s;
         }
         .field-input:focus { border-color: #0284c7; outline: none; }
-        textarea.field-input { resize: vertical; min-height: 60px; font-family: inherit; }
 
-        /* 포켓몬 안내 서브 안내 스타일 */
+        /* 원본 참고: 포켓몬 실시간 추천 검색창 자동완성 드롭다운 박스 */
+        .poke-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: white; border: 1px solid #cbd5e1; border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 240px; overflow-y: auto;
+            z-index: 999; display: none;
+        }
+        .poke-dropdown.open { display: block; }
+        .poke-dropdown-item {
+            display: flex; align-items: center; padding: 8px 12px; font-size: 13px;
+            color: #1e293b; cursor: pointer; border-bottom: 1px solid #f1f5f9; gap: 10px;
+        }
+        .poke-dropdown-item:hover { background-color: #f1f5f9; }
+        .poke-dropdown-item img { width: 32px; height: 32px; object-fit: contain; }
+        .poke-dropdown-num { font-size: 11px; font-weight: bold; color: #94a3b8; font-family: monospace; }
+
         .sticker-section-sub ul { margin: 0; padding-left: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; }
         
         /* 스프라이트 모드 버튼 그룹 */
         .sprite-mode-toggle { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 15px; }
         .sprite-mode-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: bold; color: #64748b; text-align: center; border-radius: 6px; }
         .sprite-mode-btn.active { background: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-
-        .info-msg { font-size: 12px; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
 
         /* [4. preview-area] */
         .preview-area { flex: 1; padding: 40px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; background-color: #f8fafc; }
@@ -105,7 +119,6 @@
         .trainer-name { font-size: 36px; font-weight: bold; margin-bottom: 15px; min-height: 48px; color: #1e293b; }
         .quote-box { background: #f1f5f9; border-left: 5px solid #0284c7; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; min-height: 36px; color: #475569; }
         .main-party-img, .character-img { width: 100%; height: 220px; background: #f8fafc; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; color: #94a3b8; font-size: 13px; margin-top: 15px; }
-        .character-img { height: 160px; margin-bottom: 10px; margin-top: 0; }
         
         .profile-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .profile-table th, .profile-table td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
@@ -121,10 +134,9 @@
 </head>
 <body>
 
-    <!-- 1. app-header -->
     <div class="app-header">
         <div class="app-header-left">
-            <button class="panel-toggle-btn" onclick="togglePanel()" title="편집 패널 열기/닫기">
+            <button class="panel-toggle-btn" onclick="togglePanel()">
                 <svg id="panel-toggle-icon" width="10" height="12" viewBox="0 0 10 12" fill="none">
                     <path d="M7 1L2 6L7 11" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
@@ -136,84 +148,43 @@
         </div>
     </div>
 
-    <!-- 2. app-body -->
     <div class="app-body">
-        
-        <!-- 3. edit-panel -->
         <div class="edit-panel" id="edit-panel">
             <nav class="side-nav">
-                <button class="side-nav-btn active" onclick="switchSection(event, 'name')">
-                    <span class="nav-icon">T</span><span class="nav-label">트레이너</span>
-                </button>
-                <button class="side-nav-btn" onclick="switchSection(event, 'pokemon')">
-                    <span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">
-                        <svg width="13" height="13" viewBox="0 0 100 100">
-                            <path d="M2.2,46 A48,48 0 0,1 97.8,46 L71.6,46 A22,22 0 0,0 28.4,46 Z" fill="currentColor"/>
-                            <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="currentColor"/>
-                            <circle cx="50" cy="50" r="10" fill="currentColor"/>
-                        </svg>
-                    </span><span class="nav-label">포켓몬</span>
-                </button>
-                <div class="side-nav-divider"></div>
-                <button class="side-nav-btn" onclick="switchSection(event, 'image')"><span class="nav-icon">I</span><span class="nav-label">이미지</span></button>
-                <button class="side-nav-btn" onclick="switchSection(event, 'color')"><span class="nav-icon">C</span><span class="nav-label">컬러</span></button>
-                <button class="side-nav-btn" onclick="switchSection(event, 'sticker')"><span class="nav-icon">★</span><span class="nav-label">스티커</span></button>
+                <button class="side-nav-btn active" onclick="switchSection(event, 'name')"><span class="nav-icon">T</span><span class="nav-label">트레이너</span></button>
+                <button class="side-nav-btn" onclick="switchSection(event, 'pokemon')"><span class="nav-icon">P</span><span class="nav-label">포켓몬</span></button>
             </nav>
 
             <div class="edit-panel-content">
-                <!-- 트레이너 패널 -->
+                <!-- 트레이너 정보 패널 -->
                 <div class="section-panel active" id="sec-name">
                     <div class="section-panel-header">
                         <div class="section-panel-title"><span class="section-panel-badge">T</span>트레이너</div>
-                        <div class="section-panel-sub">TRAINER INFO</div>
                     </div>
                     <div class="section-panel-body">
                         <div class="field-row"><label class="field-label">트레이너 이름</label><input class="field-input" type="text" id="tc-name-input" value="트레이너명" oninput="syncText('tc-name-input', ['view-name', 'view-p-name'], '트레이너명')"></div>
                         <div class="field-row"><label class="field-label">한 줄 문구</label><textarea class="field-input" id="tc-quote-input" oninput="syncText('tc-quote-input', ['view-q1'], '여기에 문구가 표시됩니다.')">여기에 문구가 표시됩니다.</textarea></div>
-                        <div class="field-row"><label class="field-label">나이</label><input class="field-input" type="text" id="tc-age-input" value="15세" oninput="syncText('tc-age-input', ['view-p-age'], '-')"></div>
-                        <div class="field-row"><label class="field-label">성별</label><input class="field-input" type="text" id="tc-gender-input" value="남성" oninput="syncText('tc-gender-input', ['view-p-gender'], '-')"></div>
-                        <div class="field-row"><label class="field-label">키</label><input class="field-input" type="text" id="tc-height-input" value="168cm" oninput="syncText('tc-height-input', ['view-p-height'], '-')"></div>
-                        <div class="field-row"><label class="field-label">출신지</label><input class="field-input" type="text" id="tc-origin-input" value="신오지방" oninput="syncText('tc-origin-input', ['view-p-origin'], '-')"></div>
                     </div>
                 </div>
 
-                <!-- 포켓몬 엔트리 패널 -->
+                <!-- 포켓몬 검색 패널 -->
                 <div class="section-panel" id="sec-pokemon">
                     <div class="section-panel-header">
-                        <div class="section-panel-title">
-                            <span class="section-panel-badge" style="display:flex;align-items:center;justify-content:center;">
-                                <svg width="10" height="10" viewBox="0 0 100 100">
-                                    <path d="M2.2,46 A48,48 0 0,1 97.8,46 L71.6,46 A22,22 0 0,0 28.4,46 Z" fill="white"/>
-                                    <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="white"/>
-                                    <circle cx="50" cy="50" r="10" fill="white"/>
-                                </svg>
-                            </span>포켓몬 엔트리
-                        </div>
-                        <div class="section-panel-sub">POKÉMON ENTRY</div>
+                        <div class="section-panel-title">포켓몬 엔트리</div>
                     </div>
                     <div class="section-panel-body">
-                        <div class="sticker-section-sub" style="margin-bottom:10px;">
-                            <ul>
-                                <li>포켓몬 한글 이름을 치고 입력칸을 벗어나거나 엔터를 누르세요.</li>
-                                <li>선택 시 이미지와 명칭이 자동으로 시트에 추가됩니다.</li>
-                                <li><span style="color:#7C6FCF; font-weight:700;">⚠ 영문 번역 API를 거쳐 이미지를 파싱해옵니다.</span></li>
-                            </ul>
-                        </div>
                         <div class="sprite-mode-toggle">
                             <button id="sprite-mode-illust" class="sprite-mode-btn active" onclick="setSpriteMode('illust')">일러스트</button>
                             <button id="sprite-mode-dot" class="sprite-mode-btn" onclick="setSpriteMode('dot')">도트</button>
                         </div>
+                        <!-- 동적으로 입력 창과 드롭다운이 추가되는 영역 -->
                         <div id="pokemon-slots-panel"></div>
                     </div>
                 </div>
-
-                <div class="section-panel" id="sec-image"><div class="section-panel-header"><div class="section-panel-title">이미지</div></div><div class="section-panel-body"><p class="info-msg">📸 이미지 설정</p></div></div>
-                <div class="section-panel" id="sec-color"><div class="section-panel-header"><div class="section-panel-title">컬러</div></div><div class="section-panel-body"><p class="info-msg">🎨 컬러 설정</p></div></div>
-                <div class="section-panel" id="sec-sticker"><div class="section-panel-header"><div class="section-panel-title">스티커</div></div><div class="section-panel-body"><p class="info-msg">★ 스티커 설정</p></div></div>
             </div>
         </div>
 
-        <!-- 4. preview-area -->
+        <!-- 우측 메인 프리뷰 시트 판판 -->
         <div class="preview-area">
             <div id="sheet-container">
                 <div class="top-section">
@@ -226,16 +197,12 @@
                         <div class="character-img">트레이너 일러스트</div>
                         <table class="profile-table">
                             <tr><th>이름</th><td id="view-p-name">트레이너명</td></tr>
-                            <tr><th>나이</th><td id="view-p-age">15세</td></tr>
-                            <tr><th>성별</th><td id="view-p-gender">남성</td></tr>
-                            <tr><th>신장</th><td id="view-p-height">168cm</td></tr>
-                            <tr><th>출신</th><td id="view-p-origin">신오지방</td></tr>
+                            <tr><th>나이</th><td>15세</td></tr>
                         </table>
                     </div>
                 </div>
 
                 <div class="pokemon-grid">
-                    <!-- 각 슬롯별 카드 (헤더 및 이미지 공간 확보) -->
                     <div class="pkm-card"><div class="pkm-header" id="p1-title">포켓몬 #1</div><div class="pkm-img-slot" id="p1-img">?</div></div>
                     <div class="pkm-card"><div class="pkm-header" id="p2-title">포켓몬 #2</div><div class="pkm-img-slot" id="p2-img">?</div></div>
                     <div class="pkm-card"><div class="pkm-header" id="p3-title">포켓몬 #3</div><div class="pkm-img-slot" id="p3-img">?</div></div>
@@ -248,89 +215,169 @@
     </div>
 
     <script>
-        // 전역 상태 변수 (현재 모드 및 로드된 데이터 캐싱용)
+        // ── 1세대 한글 도감 데이터베이스 (POKE_NAME_TO_ID 구조 매핑) ──
+        const POKE_NAME_TO_ID = {
+            "이상해씨": 1, "이상해풀": 2, "이상해꽃": 3, "파이리": 4, "리자드": 5, "리자몽": 6,
+            "꼬부기": 7, "어니부기": 8, "거북왕": 9, "캐터피": 10, "단데기": 11, "버터플": 12,
+            "뿔충이": 13, "딱충이": 14, "독침붕": 15, "구구": 16, "피죤": 17, "피죤투": 18,
+            "꼬렛": 19, "레트라": 20, "깨비참": 21, "깨비드릴조": 22, "아보": 23, "아보크": 24,
+            "피카츄": 25, "라이츄": 26, "모래두지": 27, "고지": 28, "니드런♀": 29, "니드런♂": 32,
+            "니도리나": 30, "니도퀸": 31, "니도리노": 33, "니도킹": 34, "삐삐": 35, "픽시": 36,
+            "식스테일": 37, "나인테일": 38, "푸린": 39, "푸크린": 40, "주뱃": 41, "골뱃": 42,
+            "뚜벅쵸": 43, "냄새꼬": 44, "라플레시아": 45, "파라스": 46, "파라섹트": 47, "콘팡": 48,
+            "도나리": 49, "디그다": 50, "닥트리오": 51, "나옹": 52, "페르시온": 53, "고라파덕": 54,
+            "골덕": 55, "망키": 56, "성원숭": 57, "가디": 58, "윈디": 59, "발챙이": 60,
+            "수륙챙이": 61, "강챙이": 62, "케이시": 63, "윤겔라": 64, "후딘": 65, "알통몬": 66,
+            "근육몬": 67, "괴력몬": 68, "모다피": 69, "우츠동": 70, "우츠보트": 71, "왕눈해": 72,
+            "독파굴": 73, "꼬마돌": 74, "데구리": 75, "딱구리": 76, "포니타": 77, "날씽마": 78,
+            "야돈": 79, "야도란": 80, "코일": 81, "레어코일": 82, "파오리": 83, "두두": 84,
+            "두리오": 85, "쥬쥬": 86, "쥬레곤": 87, "질퍽이": 88, "질뻐기": 89, "셀러": 90,
+            "파르셀": 91, "고스": 92, "고우스트": 93, "팬텀": 94, "롱스톤": 95, "슬리프": 96,
+            "슬리퍼": 97, "크랩": 98, "킹크랩": 99, "아라리": 100, "나시": 101, "탕구리": 102,
+            "텅구리": 103, "시라소몬": 104, "홍수몬": 105, "내루미": 106, "또가스": 107, "또도가스": 108,
+            "뿔카노": 109, "코뿌리": 110, "럭키": 111, "덩쿠리": 112, "캥카": 113, "쏘드라": 114,
+            "시드라": 115, "콘치": 116, "왕콘치": 117, "별가사리": 118, "아쿠스타": 119, "마임맨": 120,
+            "스라크": 121, "루주라": 122, "에레브": 123, "마그마": 124, "쁘사이저": 125, "켄타로스": 126,
+            "잉어킹": 127, "generic갸라도스": 128, "갸라도스": 130, "라프라스": 131, "메타몽": 132,
+            "이브이": 133, "샤미드": 134, "쥬피썬더": 135, "부스터": 136, "폴리곤": 137, "암나이트": 138,
+            "암스타": 139, "투구": 140, "투구푸스": 141, "프테라": 142, "잠만보": 143, "프리져": 144,
+            "썬더": 145, "파이어": 146, "미뇽": 147, "신뇽": 148, "망나뇽": 149, "뮤츠": 150, "뮤": 151
+        };
+
         let currentSpriteMode = 'illust';
-        const pokemonDataCache = {}; 
+        const selectedPokemonSlots = {}; // 6개 칸 선택 결과 보관 캐시
 
         window.addEventListener('DOMContentLoaded', () => {
             const slotsPanel = document.getElementById('pokemon-slots-panel');
             let htmlBuffer = '';
+            
             for(let i = 1; i <= 6; i++) {
                 htmlBuffer += `
                     <div class="field-row">
                         <label class="field-label">포켓몬 ${i} 이름</label>
-                        <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="예: 피카츄" onchange="fetchPokemonImage(${i})">
+                        <div class="input-wrap">
+                            <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="이름을 입력하세요..." autocomplete="off">
+                            <div class="poke-dropdown" id="tc-pkm-dropdown-${i}"></div>
+                        </div>
                     </div>
                 `;
             }
             slotsPanel.innerHTML = htmlBuffer;
+
+            // 각 생성된 인풋에 검색 연동 이벤트 리스너 할당
+            for(let i = 1; i <= 6; i++) {
+                initPokemonSearchSlot(i);
+            }
         });
 
-        // ✨ 핵심: 한글명을 받아 PokeAPI 영어 이름 매핑 후 이미지 세팅하는 비동기 함수
-        async function fetchPokemonImage(slotIndex) {
-            const inputVal = document.getElementById(`tc-pkm-input-${slotIndex}`).value.trim();
-            const headerEl = document.getElementById(`p${slotIndex}-title`);
-            const imgSlotEl = document.getElementById(`p${slotIndex}-img`);
+        // ── 공유주신 원본 참고 검색 바인딩 함수 ──
+        function initPokemonSearchSlot(i) {
+            const input = document.getElementById(`tc-pkm-input-${i}`);
+            const dropdown = document.getElementById(`tc-pkm-dropdown-${i}`);
 
-            if (!inputVal) {
-                headerEl.innerText = `포켓몬 #${slotIndex}`;
-                imgSlotEl.innerHTML = '?';
-                delete pokemonDataCache[slotIndex];
-                return;
-            }
-
-            headerEl.innerText = inputVal;
-            imgSlotEl.innerHTML = '...';
-
-            try {
-                // 1단계: 한글 이름을 통해 종(species) 데이터를 먼저 조회하여 내부 영어 ID 추출
-                const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(inputVal.toLowerCase())}/`);
-                if(!speciesResponse.ok) throw new Error('Not Found');
-                const speciesData = await speciesResponse.json();
+            input.addEventListener('input', () => {
+                const q = input.value.trim();
+                if (!q) { dropdown.classList.remove('open'); dropdown.innerHTML = ''; return; }
                 
-                // 2단계: 추출된 영어 고유 ID/명칭으로 실제 스프라이트 상세 객체 호출
-                const pokeResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesData.id}/`);
-                const pokeData = await pokeResponse.json();
+                const results = searchPokemon(q);
+                if (!results.length) { dropdown.classList.remove('open'); return; }
+                
+                dropdown.innerHTML = '';
+                results.slice(0, 8).forEach(({id, name}) => {
+                    const item = document.createElement('div');
+                    item.className = 'poke-dropdown-item';
+                    
+                    // 드롭다운 내부 미리보기 썸네일 (공식 아트워크 활용)
+                    const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+                    
+                    item.innerHTML = `
+                        <img src="${spriteUrl}" alt="" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png'">
+                        <span class="poke-dropdown-num">#${String(id).padStart(3,'0')}</span>
+                        <span>${name}</span>
+                    `;
 
-                // 캐시에 저장하여 모드 전환(일러스트 <-> 도트) 시 바로 활용
-                pokemonDataCache[slotIndex] = {
-                    illust: pokeData.sprites.other['official-artwork'].front_default,
-                    dot: pokeData.sprites.front_default || pokeData.sprites.front_shiny
-                };
+                    item.addEventListener('mousedown', e => {
+                        e.preventDefault();
+                        selectPokemon(i, id, name);
+                        dropdown.classList.remove('open');
+                        input.blur();
+                    });
+                    dropdown.appendChild(item);
+                });
+                dropdown.classList.add('open');
+            });
 
-                renderSlotImage(slotIndex);
-            } catch (error) {
-                imgSlotEl.innerHTML = '❌';
-                console.error('포켓몬 데이터 매핑 실패:', error);
-            }
+            input.addEventListener('blur', () => {
+                setTimeout(() => dropdown.classList.remove('open'), 180);
+            });
         }
 
-        // 현재 모드(일러스트/도트)에 맞춰 이미지 태그를 주입하는 헬퍼 함수
-        function renderSlotImage(slotIndex) {
-            const imgSlotEl = document.getElementById(`p${slotIndex}-img`);
-            const cache = pokemonDataCache[slotIndex];
-            if (!cache) return;
-
-            const targetUrl = currentSpriteMode === 'illust' ? cache.illust : cache.dot;
-            if (targetUrl) {
-                imgSlotEl.innerHTML = `<img src="${targetUrl}" alt="pokemon">`;
-            } else {
-                imgSlotEl.innerHTML = '❔';
+        // ── 한글 자모/이름 포함 일치 서치 매칭 함수 ──
+        function searchPokemon(query) {
+            const q = query.toLowerCase();
+            const results = [];
+            
+            for (const [name, id] of Object.entries(POKE_NAME_TO_ID)) {
+                if (name.includes(q)) {
+                    results.push({ id, name });
+                }
             }
+            
+            // 번호 검색 매칭 바인딩 (#025 또는 25 형태 대응)
+            const numQ = q.replace(/^#/, '');
+            if (/^\d+$/.test(numQ)) {
+                const numId = parseInt(numQ);
+                const nameByNumber = Object.keys(POKE_NAME_TO_ID).find(key => POKE_NAME_TO_ID[key] === numId);
+                if (nameByNumber && !results.find(r => r.id === numId)) {
+                    results.unshift({ id: numId, name: nameByNumber });
+                }
+            }
+
+            // 중복 제거 및 도감 순번 정렬
+            const seen = new Set();
+            return results.filter(r => {
+                if (seen.has(r.id)) return false;
+                seen.add(r.id); return true;
+            }).sort((a,b) => a.id - b.id);
         }
 
-        // 토글 버튼 누를 때 전체 슬롯 갱신
+        // ── 최종 선택 타겟 슬롯 데이터 맵 처리 및 우측 랜더링 적용 ──
+        function selectPokemon(slotIdx, pokeId, koName) {
+            document.getElementById(`tc-pkm-input-${slotIdx}`).value = koName;
+            document.getElementById(`p${slotIdx}-title`).innerText = koName;
+
+            // GitHub PokeAPI 고해상도 리소스 주소 직접 계산 매핑 (클라이언트 과부하 및 딜레이 제로)
+            selectedPokemonSlots[slotIdx] = {
+                id: pokeId,
+                name: koName,
+                illust: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`,
+                dot: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`
+            };
+
+            renderSlotImage(slotIdx);
+        }
+
+        // 토글 형태 이미지 스위칭 함수
+        function renderSlotImage(slotIdx) {
+            const imgSlotEl = document.getElementById(`p${slotIdx}-img`);
+            const targetData = selectedPokemonSlots[slotIdx];
+            if (!targetData) return;
+
+            const targetUrl = currentSpriteMode === 'illust' ? targetData.illust : targetData.dot;
+            imgSlotEl.innerHTML = `<img src="${targetUrl}" alt="${targetData.name}" onerror="this.parentNode.innerHTML='❌'">`;
+        }
+
+        // 모드 전환시 6칸 전체 리프레시 처리
         function setSpriteMode(mode) {
             currentSpriteMode = mode;
             document.getElementById('sprite-mode-illust').classList.toggle('active', mode === 'illust');
             document.getElementById('sprite-mode-dot').classList.toggle('active', mode === 'dot');
-            
             for(let i = 1; i <= 6; i++) {
                 renderSlotImage(i);
             }
         }
 
-        // UI 기본 인터랙션 스크립트
+        // 기본 탭 및 텍스트 씽크 스크립트 리로드 유지
         function switchSection(event, sectionName) {
             document.querySelectorAll('.side-nav-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
