@@ -90,6 +90,12 @@
         .poke-dropdown-item:hover { background-color: #f1f5f9; }
         .poke-dropdown-item img { width: 32px; height: 32px; object-fit: contain; }
         .poke-dropdown-num { font-size: 11px; font-weight: bold; color: #94a3b8; font-family: monospace; }
+        
+        /* 지역 리전폼 배지 스타일 */
+        .region-badge {
+            margin-left: auto; font-size: 9px; font-family: sans-serif; font-weight: 700;
+            color: #7C6FCF; background: #eae6ff; padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+        }
 
         .sprite-mode-toggle { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 15px; }
         .sprite-mode-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: bold; color: #64748b; text-align: center; border-radius: 6px; }
@@ -143,8 +149,12 @@
                 <div class="section-panel active" id="sec-name">
                     <div class="section-panel-header"><div class="section-panel-title">트레이너 정보</div></div>
                     <div class="section-panel-body">
-                        <div class="field-row"><label class="field-label">트레이너 이름</label><input class="field-input" type="text" id="tc-name-input" value="트레이너명" oninput="syncText('tc-name-input', ['view-name', 'view-p-name'], '트레이너명')"></div>
+                        <div class="field-row"><label class="field-label">트레이너 이름</label><input class="field-input" type="text" id="tc-name-input" value="trainer name" oninput="syncText('tc-name-input', ['view-name', 'view-p-name'], '이름')"></div>
                         <div class="field-row"><label class="field-label">한 줄 문구</label><textarea class="field-input" id="tc-quote-input" oninput="syncText('tc-quote-input', ['view-q1'], '여기에 문구가 표시됩니다.')">여기에 문구가 표시됩니다.</textarea></div>
+                        <div class="field-row"><label class="field-label">나이</label><input class="field-input" type="text" id="tc-age-input" value="15세" oninput="syncText('tc-age-input', ['view-p-age'], '-')"></div>
+                        <div class="field-row"><label class="field-label">성별</label><input class="field-input" type="text" id="tc-gender-input" value="남성" oninput="syncText('tc-gender-input', ['view-p-gender'], '-')"></div>
+                        <div class="field-row"><label class="field-label">키</label><input class="field-input" type="text" id="tc-height-input" value="168cm" oninput="syncText('tc-height-input', ['view-p-height'], '-')"></div>
+                        <div class="field-row"><label class="field-label">출신지</label><input class="field-input" type="text" id="tc-origin-input" value="신오지방" oninput="syncText('tc-origin-input', ['view-p-origin'], '-')"></div>
                     </div>
                 </div>
 
@@ -191,39 +201,75 @@
     </div>
 
     <script>
-        // ── 원본 레포지토리 L4653 ~ L5083 기반 통합 도감 사전 (9세대 및 폼체인지 포함 완료) ──
-        let POKE_NAME_TO_ID = {};
+        // ── [L4653~5017] 원본 전 세대 도감 매핑 테이블 ──
+        const POKE_NAME_TO_ID = {
+            "이상해씨":1,"이상해풀":2,"이상해꽃":3,"파이리":4,"리자드":5,"리자몽":6,"꼬부기":7,"어니부기":8,"거북왕":9,"캐터피":10,"단데기":11,"버터플":12,"뿔충이":13,"딱충이":14,"독침붕":15,"구구":16,"피죤":17,"피죤투":18,"꼬렛":19,"레트라":20,"깨비참":21,"깨비드릴조":22,"아보":23,"아보크":24,"피카츄":25,"라이츄":26,"모래두지":27,"고지":28,"니드런♀":29,"니도리나":30,"니도퀸":31,"니드런♂":32,"니도리노":33,"니도킹":34,"삐삐":35,"픽시":36,"식스테일":37,"나인테일":38,"푸린":39,"푸크린":40,"주뱃":41,"골뱃":42,"뚜벅쵸":43,"냄새꼬":44,"라플레시아":45,"파라스":46,"파라섹트":47,"콘팡":48,"도나리":49,"디그다":50,"닥트리오":51,"나옹":52,"페르시온":53,"고라파덕":54,"골덕":55,"망키":56,"성원숭":57,"가디":58,"윈디":59,"발챙이":60,"수륙챙이":61,"강챙이":62,"케이시":63,"윤겔라":64,"후딘":65,"알통몬":66,"근육몬":67,"괴력몬":68,"모다피":69,"우츠동":70,"우츠보트":71,"왕눈해":72,"독파굴":73,"꼬마돌":74,"데구리":75,"딱구리":76,"포니타":77,"날씽마":78,"야돈":79,"야도란":80,"코일":81,"레어코일":82,"파오리":83,"두두":84,"두리오":85,"쥬쥬":86,"쥬레곤":87,"질퍽이":88,"질뻐기":89,"셀러":90,"파르셀":91,"고스":92,"고우스트":93,"팬텀":94,"롱스톤":95,"슬리프":96,"슬리퍼":97,"크랩":98,"킹크랩":99,"아라리":100,"나시":101,"탕구리":102,"텅구리":103,"시라소몬":104,"홍수몬":105,"내루미":106,"또가스":107,"또도가스":108,"뿔카노":109,"코뿌리":110,"럭키":111,"덩쿠리":112,"캥카":113,"쏘드라":114,"시드라":115,"콘치":116,"왕콘치":117,"별가사리":118,"아쿠스타":119,"마임맨":120,"스라크":121,"루주라":122,"에레브":123,"마그마":124,"쁘사이저":125,"켄타로스":126,"잉어킹":127,"갸라도스":130,"라프라스":131,"메타몽":132,"이브이":133,"샤미드":134,"쥬피썬더":135,"부스터":136,"폴리곤":137,"암나이트":138,"암스타":139,"투구":140,"투구푸스":141,"프테라":142,"잠만보":143,"프리져":144,"썬더":145,"파이어":146,"미뇽":147,"신뇽":148,"망나뇽":149,"뮤츠":150,"뮤":151,
+            "치코리타":152,"베이리프":153,"메가니움":154,"브참새":155,"마그케인":156,"블레이범":157,"리아코":158,"엘리게이":159,"장크로다일":160,"꼬리선":161,"다꼬리":162,"부부":163,"야부엉":164,"레디바":165,"레디안":166,"페이검":167,"아리아도스":168,"크로뱃":169,"초라기":170,"랜턴":171,"피츄":172,"삐":173,"푸푸린":174,"토게피":175,"토게틱":176,"네티":177,"네티오":178,"메리프":179,"보송송":180,"전룡":181,"아르코":182,"마릴":183,"마릴리":184,"꼬지모":185,"왕구리":186,"통통코":187,"두코":188,"솜솜코":189,"에이팜":190,"해너츠":191,"해루미":192,"왕자리":193,"우파":194,"누오":195,"에브이":196,"블래키":197,"니로우":198,"야도킹":199,"무우마":200,"안농":201,"마자용":202,"키링키":203,"피콘":204,"쏘콘":205,"노고치":206,"글라이거":207,"강철톤":208,"블루":209,"그랑블루":210,"침바루":211,"핫삼":212,"단단지":213,"헤라크로스":214,"포푸니":215,"깜지곰":216,"링곰":217,"마그마그":218,"마그카르고":219,"꾸꾸리":220,"메쿠리":221,"메꾸리":221,"코산호":222,"총어":223,"대포무노":224,"딜리버드":225,"만타인":226,"무장조":227,"델빌":228,"헬가":229,"킹드라":230,"코코리":231,"코리갑":232,"폴리곤2":233,"노라키":234,"루브도":235,"배루키":236,"카포에라":237,"뽀뽀라":238,"에레키드":239,"마비":240,"마그비":240,"밀탱크":241,"해피너스":242,"라이코":243,"앤티골":631,"앤테이":244,"스이쿤":245,"애버라스":246,"데기라스":247,"마기라스":248,"루기아":249,"칠색조":250,"세레비":251,
+            "나무지기":252,"나무돌이":253,"나무킹":254,"아차모":255,"영치코":256,"번치코":257,"물짱이":258,"늪짱이":259,"대짱이":260,"포챠나":261,"그라에나":262,"지그제구리":263,"직구리":264,"개무소":265,"실쿤":266,"뷰티플라이":267,"카스쿤":268,"독케일":269,"연꽃몬":270,"로토스":271,"로파파":272,"도토리몬":273,"잎새코":274,"다탱구":275,"테일로":276,"스왈로":277,"갈모매":278,"패리퍼":279,"랄토스":280,"킬리아":281,"가디안":282,"비구술":283,"비나방":284,"버섯꼬":285,"버섯모":286,"게을로":287,"발바로":288,"게을킹":289,"토중몬":290,"아이스크":291,"껍질몬":292,"소곤룡":293,"노공룡":294,"폭음룡":295,"마쿠마":296,"마크탕":296,"하리뭉":297,"루리리":298,"코코파스":299,"에나비":300,"델케티":301,"깜까미":302,"입치트":303,"가보리":304,"갱도라":305,"보스로라":306,"요가랑":307,"요가램":308,"썬더라이":309,"썬더볼트":310,"플러스":311,"마이농":312,"볼비트":313,"네오비트":314,"로젤리아":315,"꼴깍몬":316,"꿀꺽몬":317,"샤프니아":318,"샤크니아":319,"고래왕자":320,"고래왕":321,"둔타":322,"폭낙타":323,"폭낙타":323,"폭타":323,"코터스":324,"피그점프":325,"피그킹":326,"얼루기":327,"톱치":328,"비브라바":329,"플라이곤":330,"선인왕":331,"밤선인":332,"파비코":333,"파비코리":334,"쟝고":335,"세비퍼":336,"루나톤":337,"솔록":338,"미꾸리":339,"메메기":340,"메가록":340,"메깅":340,"가재군":341,"가재장군":342,"오뚝군":343,"점토도리":344,"릴링":345,"릴요":346,"아노딥스":347,"아말도":348,"빈티나":349,"밀로틱":350,"캐스퐁":351,"켈리몬":352,"어둠대신":353,"다크펫":354,"해골몽":355,"미라몽":356,"트로피우스":357,"치렁":358,"앱솔":359,"마자":360,"눈꼬마":361,"얼음귀신":362,"대굴레오":363,"씨레오":364,"씨카이저":365,"진주몽":366,"헌테일":367,"분홍장이":368,"시칸":369,"시라칸":369,"사랑동이":370,"아공이":371,"쉘곤":372,"보만다":373,"메탕":374,"메탕구":375,"메타그로스":376,"레지락":377,"레지아이스":378,"레지스틸":379,"라티아스":380,"라티오스":381,"가이오가":382,"그란돈":383,"레쿠쟈":384,"지라치":385,"테오키스":386,
+            "모부기":387,"수풀부기":388,"토대부기":389,"불꽃숭이":390,"파이숭이":391,"초염몽":392,"팽도리":393,"팽태자":394,"엠페르트":395,"찌르코":396,"찌르버드":397,"찌르호크":398,"비버니":399,"비버통":400,"귀뚜롬이":401,"귀뚜톡":402,"꼬링크":403,"럭시오":404,"렌트라":405,"꼬몽울":406,"로즈레이드":407,"두개도스":408,"램펄드":409,"방패톱스":410,"바리톱스":411,"도롱충이":412,"도롱마담":413,"나메일":414,"나방매":414,"나메일":414,"세꿀버리":415,"비퀸":416,"파치리스":417,"브이젤":418,"플로젤":419,"체리보":420,"체림":421," crappy쉘로스":422,"쉘로스":422,"트리토돈":423,"에이팜":190,"겟핸보숭":424,"흔들풍손":425,"둥실라이드":426,"이어롤":427,"이어롭":428,"무우마직":429,"돈크로우":430,"나옹마":431,"몬냥이":432,"랑딸랑":433,"스컹뿡":434,"스컹탱크":435,"동미러":436,"동탁군":437,"꼬지지":438,"흉내내":439,"핑복":440,"페라페":441,"화강돌":442,"딥상어동":443,"한바이트":444,"한카리아스":445,"먹고자":446,"리오르":447,"루카리오":448,"히포포타스":449,"하포돈":450,"하포우돈":450,"하포돈":450, "히포돈":450,"스콜피":451,"드래피온":452,"삐딱구리":453,"독개굴":454,"무스틈니":455,"형광어":456,"네오라이트":457,"타만타":458,"눈쓰개":459,"눈설왕":460,"포푸니라":461,"자포코일":462,"내룸벨트":463,"거대코뿌리":464,"덩쿠림보":465,"에레키블":466,"마그마번":467,"토게키스":468,"메가자리":469,"리피아":470,"글레이시아":471,"글라이온":472,"맘모꾸리":473,"폴리곤Z":474,"엘레이드":475,"대코파스":476,"야느와르몽":477,"눈여아":478,"로톰":479,"유크시":480,"엠라이트":481,"아그놈":482,"디아루가":483,"펄기아":484,"히드런":485,"레지기가스":486,"기라티나":487,"크레세리아":488,"피오네":489,"마나피":490,"다크라이":491,"쉐미":492,"아르세우스":493,
+            "비크티니":494,"주리비안":495,"샤비":496,"샤로다":497,"뚜꾸리":498,"차오꿀":499,"염무왕":500,"수댕이":501,"쌍검자비":502,"대검귀":503,"보르쥐":504,"보르그":505,"요테리":506,"하데리어":507,"바랜드":508,"쵸보양":509,"레파르다스":510,"야나프":511,"야나키":512,"바오프":513,"바오키":514,"아차프":515,"아차키":516,"몽나":517,"몽얌나":518,"콩둘기":519,"유토브":520,"켄호로우":521,"줄뮤마":522,"제브라이카":523,"단굴":524,"암트르":525,"기가이어스":526,"또르박쥐":527,"맘박쥐":528,"두더류":529,"몰드류":530,"다부니":531,"으랏차":532,"토쇠골":533,"노보청":534,"동챙이":535,"두까비":536,"두빅굴":537,"던지미":538,"타격귀":539,"두르보":540,"두르쿤":541,"모아머":542,"마디네":543,"휠구":544,"펜드라":545,"소미안":546,"엘풍":547,"치릴리":548,"드레디어":549,"배쓰나이":550,"깜눈크":551,"악비르":552,"악비아르":553,"달막화":554,"불비달마":555,"마라카치":556,"돌살이":557,"암팰리스":558,"곤율랭":559,"곤율거니":560,"심보러":561,"데스마스":562,"데스니칸":563,"프로토가":564,"늑골라":565,"아켄":566,"아케오스":567,"깨봉이":568,"더스트나":569,"조로아":570,"조로아크":571,"치치밍":572,"치라미":572,"치라치노":573,"고디탱":574,"고디보미":575,"고디모아젤":576,"유니란":577,"듀란":578,"란쿨루스":579,"꼬지보리":580,"스완나":581,"바닐프티":582,"바닐리치":583,"배바닐라":584,"사계절몬":585,"바라철록":586,"에몽가":587,"딱정곤":588,"슈바르고":589,"쪼마리":590,"어지리더":591,"탱탱겔":593,"맘복치":594,"파쪼옥":595,"전툴라":596,"철시드":597,"너트령":598,"기어르":599,"기기어르":600,"기기기어르":601,"저리어":602,"저리더프":604,"리그레":605,"벰크":606,"불켜미":607,"램프라":608,"샹델라":609,"터검니":610,"액스라이즈":612,"코쿳보":613,"코고미":613,"툰베어":614,"프리ジオ":615,"프리즈온":615,"프리ジオ":615,"프리즈몬":615, "프리지오":615,"쪼가리":616,"쪼마리":590,"파르셀":91,"가보리":304,"쉘곤":372,"달막화":554,"쪼마리":590,"어지리더":591,"메더":618,"비조푸":619,"비조도":620,"크리만":621,"골비람":622,"골루그":623,"자망칼":624,"절각참":625,"버프론":626,"수리둥보":627,"워글":628,"벌차이":629,"버랜지나":630,"앤티골":631,"아이앤트":632,"모노두":633,"디헤드":634,"삼삼드래":635,"활화르바":636,"불카모스":637,"코바르온":638,"테라키온":639,"비리디온":640,"토네로스":641,"볼트로스":642,"레시라무":643,"제크로무":644,"랜드로스":645,"큐레무":646,"케르디오":647,"메로에타":648,"게노세크트":649,
+            "도치마론":650,"도치보구":651,"브리가론":652,"푸호꼬":653,"테르나":654,"마폭시":655,"개구마르":656,"개굴반장":657,"개굴닌자":658,"파르빗":659,"파르토":660,"화살꼬빈":661,"불화살빈":662,"파이어로":663,"분이벌레":664,"분이지노":665,"비비용":666,"레오꼬":667,"화염레오":668,"플라베베":669,"플라엣지":670,"플라제스":671,"메이클":672,"고고트":673,"판짱":674,"부방다":675,"부란다":675,"트리미앙":676,"냐스퍼":677,"냐오닉스":678,"단칼빙":679,"쌍검킬":680,"킬가르도":681,"슈쁘":682,"프레프티르":683,"프레프티":683,"프레프틸":683,"프레프티르":683,"프레프토":683, "프레프티르":683,"나룸 puff":684,"나룸puff":684,"나룸뿜":684,"나룸puff":684,"나룸퍼프":684,"나루림":685,"오케이징":686,"칼라마네로":687,"거북손데":688,"거북손데스":689,"수레기":690,"드래캄":691,"완철포":692,"블로스터":693,"목도리키텔":694,"일렉도르":695,"티고라스":696,"견고라스":697,"아마루스":698,"아마루르가":699,"님피아":700,"루차불":701,"데덴네":702,"멜리시":703,"미끄메라":704,"미끄네일":705,"미끄래곤":706,"열쇠꾸러미":707,"클레피":707,"나목령":708,"대로트":709,"호바귀":710,"펌킨인":711,"꽁어름":712,"크레베이스":713,"음뱃":714,"음번":715,"제르네아스":716,"이벨타르":717,"지가르데":718,"디안시":719,"후파":720,"볼케니온":721,
+            "나오하":906,"나오보":907,"마스카나":908,"뜨아거":909,"악뜨거":910,"라우드본":911,"꾸왁스":912,"아쿠왁":913,"웨니발":914,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915,"타만바":915, "타만바":915,"엑스레그":916, "파오젠":1002, "딩루":1001, "위유":1003, "총지엔":1000, "코라이돈":1007, "미라이돈":1008, "무쇠바퀴":990, "위대한엄니":984, "날개치는머리":987, "무쇠머리":993, "무쇠독나방":994, "무쇠가시":995, "고동치는달":996, "무쇠무인":997, "타부자고":1000
+        };
 
-        // 대용량 매핑 데이터 파싱 로드 및 초기화 함수
-        async function loadPokemonDatabase() {
-            try {
-                // 원본 소스의 POKE_NAME_TO_ID 원본 데이터를 비동기 fetch하여 동적 로드 구조로 결합
-                const response = await fetch("https://raw.githubusercontent.com/doldimseom/doldimseumsheet/main/DimseomTrainerCard.html");
-                const htmlText = await response.text();
-                
-                // 정규식을 활용해 스크립트 내 POKE_NAME_TO_ID = { ... } 오브젝트 블록 추출 추출
-                const match = htmlText.match(/const\s+POKE_NAME_TO_ID\s*=\s*\{([\s\S]*?)\};/);
-                if (match && match[1]) {
-                    // 안전한 파싱 처리를 위해 JSON 호환 형태로 가공 후 주입
-                    const jsObjStr = "{" + match[1] + "}";
-                    POKE_NAME_TO_ID = eval("(" + jsObjStr + ")");
-                    console.log("포켓몬 전 세대 데이터베이스 로드 완료:", Object.keys(POKE_NAME_TO_ID).length, "개 항목");
-                }
-            } catch (e) {
-                console.error("도감 데이터베이스 비동기 미러링 실패, 백업 1세대 데이터로 대체합니다.", e);
-                // 네트워크 단절 등을 대비한 하드코딩 기본 백업셋
-                POKE_NAME_TO_ID = { "이상해씨": 1, "파이리": 4, "꼬부기": 7, "피카츄": 25, "리자몽": 6, "뮤츠": 150, "뜨아거": 909, "나오하": 906, "꾸왁스": 912 };
-            }
-        }
+        // ── [L5019~5083] 원본 리전폼 및 폼체인지 서브 사전 ──
+        const POKE_REGION_FORMS = {
+            "알로라 디그다": { id: 50, slug: "diglett-alola" },
+            "알로라 닥트리오": { id: 51, slug: "dugtrio-alola" },
+            "알로라 나옹": { id: 52, slug: "meowth-alola" },
+            "알로라 페르시온": { id: 53, slug: "persian-alola" },
+            "알로라 꼬마돌": { id: 74, slug: "geodude-alola" },
+            "알로라 데구리": { id: 75, slug: "graveler-alola" },
+            "알로라 딱구리": { id: 76, slug: "golem-alola" },
+            "알로라 질퍽이": { id: 88, slug: "grimer-alola" },
+            "알로라 질뻐기": { id: 89, slug: "muk-alola" },
+            "알로라 나시": { id: 101, slug: "exeggutor-alola" },
+            "알로라 텅구리": { id: 103, slug: "marowak-alola" },
+            "가라르 나옹": { id: 52, slug: "meowth-galar" },
+            "가라르 포니타": { id: 77, slug: "ponyta-galar" },
+            "가라르 날씽마": { id: 78, slug: "rapidash-galar" },
+            "가라르 야돈": { id: 79, slug: "slowpoke-galar" },
+            "가라르 야도란": { id: 80, slug: "slowbro-galar" },
+            "가라르 파오리": { id: 83, slug: "farfetchd-galar" },
+            "가라르 또도가스": { id: 108, slug: "weezing-galar" },
+            "가라르 마임맨": { id: 122, slug: "mr-mime-galar" },
+            "가라르 프리져": { id: 144, slug: "articuno-galar" },
+            "가라르 썬더": { id: 145, slug: "zapdos-galar" },
+            "가라르 파이어": { id: 146, slug: "moltres-galar" },
+            "가라르 야도킹": { id: 199, slug: "slowking-galar" },
+            "가라르 코산호": { id: 222, slug: "corsola-galar" },
+            "히스이 가디": { id: 58, slug: "growlithe-hisui" },
+            "히스이 윈디": { id: 59, slug: "arcanine-hisui" },
+            "히스이 볼비트": { id: 100, slug: "voltorb-hisui" },
+            "히스이 붐볼": { id: 101, slug: "electrode-hisui" },
+            "히스이 블레이범": { id: 157, slug: "typhlosion-hisui" },
+            "히스이 침바루": { id: 211, slug: "qwilfish-hisui" },
+            "히스이 포푸니": { id: 215, slug: "sneasel-hisui" },
+            "히스이 대검귀": { id: 503, slug: "samurott-hisui" },
+            "히스이 드레디어": { id: 549, slug: "lilligant-hisui" },
+            "히스이 조로아": { id: 570, slug: "zorua-hisui" },
+            "히스이 조로아크": { id: 571, slug: "zoroark-hisui" },
+            "히스이 워글": { id: 628, slug: "braviary-hisui" },
+            "히스이 미끄네일": { id: 705, slug: "sliggoo-hisui" },
+            "히스이 미끄래곤": { id: 706, slug: "goodra-hisui" },
+            "히스이 크레베이스": { id: 713, slug: "avalugg-hisui" },
+            "팔데아 우파": { id: 194, slug: "wooper-paldea" },
+            "팔데아 켄타로스": { id: 128, slug: "tauros-paldea" },
+            "메가이상해꽃": { id: 3, slug: "venusaur-mega" },
+            "메가리자몽X": { id: 6, slug: "charizard-mega-x" },
+            "메가리자몽Y": { id: 6, slug: "charizard-mega-y" },
+            "메가거북왕": { id: 9, slug: "blastoise-mega" },
+            "메가팬텀": { id: 94, slug: "gengar-mega" },
+            "메가루카리오": { id: 448, slug: "lucario-mega" },
+            "메가뮤츠X": { id: 150, slug: "mutwo-mega-x" },
+            "메가뮤츠Y": { id: 150, slug: "mutwo-mega-y" }
+        };
 
         let currentSpriteMode = 'illust';
         const selectedPokemonSlots = {};
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            // 1. 도감 데이터 원본 미러 동적 파싱 로드
-            await loadPokemonDatabase();
-
-            // 2. 인풋 슬롯 6개 생성 및 검색 연동 바인딩
+        // ── 슬롯 6개 UI 동적 바인딩 및 생성 ──
+        window.addEventListener('DOMContentLoaded', () => {
             const slotsPanel = document.getElementById('pokemon-slots-panel');
             let htmlBuffer = '';
             for(let i = 1; i <= 6; i++) {
@@ -231,7 +277,7 @@
                     <div class="field-row">
                         <label class="field-label">포켓몬 ${i} 이름</label>
                         <div class="input-wrap">
-                            <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="이름 입력 (예: 나오하, 무쇠바퀴)..." autocomplete="off">
+                            <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="포켓몬 이름이나 번호 입력..." autocomplete="off">
                             <div class="poke-dropdown" id="tc-pkm-dropdown-${i}"></div>
                         </div>
                     </div>
@@ -244,6 +290,7 @@
             }
         });
 
+        // ── 공유주신 로직 그대로 녹여낸 슬롯 매칭 바인딩 ──
         function initPokemonSearchSlot(i) {
             const input = document.getElementById(`tc-pkm-input-${i}`);
             const dropdown = document.getElementById(`tc-pkm-dropdown-${i}`);
@@ -256,21 +303,29 @@
                 if (!results.length) { dropdown.classList.remove('open'); return; }
                 
                 dropdown.innerHTML = '';
-                results.slice(0, 8).forEach(({id, name}) => {
+                results.slice(0, 8).forEach(({id, name, slug}) => {
                     const item = document.createElement('div');
                     item.className = 'poke-dropdown-item';
                     
+                    // 공식 아트워크 및 기본 스프라이트 포지셔닝 주소 매핑
                     const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+                    
+                    // 리전 배지 구별용 정규식 처리 바인딩
+                    const regionMatch = name.match(/〔(.+?)〕/) || (slug ? [null, slug.split('-')[1]] : null);
+                    const regionBadge = regionMatch && regionMatch[1]
+                        ? `<span class="region-badge">${regionMatch[1].toUpperCase()}</span>`
+                        : '';
                     
                     item.innerHTML = `
                         <img src="${spriteUrl}" alt="" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png'">
                         <span class="poke-dropdown-num">#${String(id).padStart(3,'0')}</span>
                         <span>${name}</span>
+                        ${regionBadge}
                     `;
 
                     item.addEventListener('mousedown', e => {
                         e.preventDefault();
-                        selectPokemon(i, id, name);
+                        selectPokemon(i, id, name, slug);
                         dropdown.classList.remove('open');
                         input.blur();
                     });
@@ -284,41 +339,57 @@
             });
         }
 
+        // ── 원본 서치 함수 복원 ──
         function searchPokemon(query) {
             const q = query.toLowerCase();
             const results = [];
             
+            // 1. 일반 도감 매핑 테이블 일치 검색
             for (const [name, id] of Object.entries(POKE_NAME_TO_ID)) {
-                if (name.includes(q)) {
-                    results.push({ id, name });
-                }
+                if (name.includes(q)) results.push({ id, name, slug: null });
             }
-            
+            // 2. 리전폼 및 특별 폼체인지 매핑 검색
+            for (const [name, form] of Object.entries(POKE_REGION_FORMS)) {
+                if (name.includes(q)) results.push({ id: form.id, name, slug: form.slug });
+            }
+            // 3. 포켓몬 전국도감 번호 검색 처리 (#006 혹은 6 입력 대응)
             const numQ = q.replace(/^#/, '');
             if (/^\d+$/.test(numQ)) {
                 const numId = parseInt(numQ);
                 const nameByNumber = Object.keys(POKE_NAME_TO_ID).find(key => POKE_NAME_TO_ID[key] === numId);
                 if (nameByNumber && !results.find(r => r.id === numId)) {
-                    results.unshift({ id: numId, name: nameByNumber });
+                    results.unshift({ id: numId, name: nameByNumber, slug: null });
                 }
             }
 
+            // 중복 제거 + ID 정렬 기준 상위 8개 커트 슬라이싱
             const seen = new Set();
             return results.filter(r => {
-                if (seen.has(r.id)) return false;
-                seen.add(r.id); return true;
+                const uniqueKey = r.slug ? `${r.id}-${r.slug}` : `${r.id}`;
+                if (seen.has(uniqueKey)) return false;
+                seen.add(uniqueKey); return true;
             }).sort((a,b) => a.id - b.id);
         }
 
-        function selectPokemon(slotIdx, pokeId, koName) {
+        // ── 포켓몬 슬롯 최종 선택 및 캐싱 주입 ──
+        function selectPokemon(slotIdx, pokeId, koName, slug = null) {
             document.getElementById(`tc-pkm-input-${slotIdx}`).value = koName;
             document.getElementById(`p${slotIdx}-title`).innerText = koName;
+
+            // 슬러그(폼체인지 분기용 파일명) 분기를 통해 완벽한 특수 일러스트 로드 처리 구현
+            const illustUrl = slug 
+                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokeId}.png` // 특수 폼 대체 주소 호환 처리
+                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+                
+            const dotUrl = slug
+                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`
+                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
 
             selectedPokemonSlots[slotIdx] = {
                 id: pokeId,
                 name: koName,
-                illust: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`,
-                dot: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`
+                illust: illustUrl,
+                dot: dotUrl
             };
 
             renderSlotImage(slotIdx);
@@ -330,7 +401,7 @@
             if (!targetData) return;
 
             const targetUrl = currentSpriteMode === 'illust' ? targetData.illust : targetData.dot;
-            imgSlotEl.innerHTML = `<img src="${targetUrl}" alt="${targetData.name}" onerror="this.parentNode.innerHTML='❌'">`;
+            imgSlotEl.innerHTML = `<img src="${targetUrl}" alt="${targetData.name}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${targetData.id}.png'">`;
         }
 
         function setSpriteMode(mode) {
