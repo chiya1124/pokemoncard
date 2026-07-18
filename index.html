@@ -3,179 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 트레이너 카드 메이커</title>
-    <!-- 화면을 이미지로 캡처해주는 html2canvas 라이브러리 -->
+    <title>포켓몬 트레이너 상세 시트 메이커</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f5f7fa;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            margin: 0;
         }
-        .container {
+        /* 메인 컨테이너 (시트 + 컨트롤러) */
+        .wrapper {
             display: flex;
-            gap: 40px;
-            max-width: 900px;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
         }
-        /* 트레이너 카드 디자인 */
-        #trainer-card {
-            width: 400px;
-            height: 250px;
-            background: linear-gradient(135deg, #e05252, #992222);
-            border-radius: 15px;
-            padding: 20px;
-            color: white;
-            position: relative;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        
+        /* 1. 이미지와 동일하게 캡처될 시트 영역 */
+        #sheet-container {
+            width: 800px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 30px;
             box-sizing: border-box;
         }
-        .card-header {
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 2px solid rgba(255,255,255,0.4);
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-        .card-body {
+        
+        /* 상단 영역 레이아웃 */
+        .top-section {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 20px;
         }
-        .trainer-info {
-            font-size: 16px;
+        .top-left {
+            width: 60%;
         }
-        /* 포켓몬 슬롯 스타일 */
-        .pokemon-slots {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+        .top-right {
+            width: 35%;
+        }
+        
+        /* 트레이너 이름 및 문구 */
+        .trainer-name {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .quote-box {
+            background: #f0f0f0;
+            border-left: 5px solid #4CAF50;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .main-party-img {
+            width: 100%;
+            height: 250px;
+            background: #eee;
             margin-top: 15px;
-        }
-        .slot {
-            width: 55px;
-            height: 55px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            border-radius: 4px;
         }
-        .slot img {
+
+        /* 프로필 테이블 */
+        .profile-table {
             width: 100%;
-            height: auto;
-        }
-        /* 조작 창 스타일 */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 300px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        input, button {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border-collapse: collapse;
+            margin-top: 10px;
             font-size: 14px;
         }
+        .profile-table th, .profile-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .profile-table th {
+            background-color: #333;
+            color: white;
+            width: 40%;
+        }
+        .character-img {
+            width: 100%;
+            height: 200px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        /* 2. 하단 포켓몬 6마리 그리드 레이아웃 */
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            border-top: 2px solid #333;
+            padding-top: 15px;
+        }
+        .pkm-card {
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 12px;
+            background: #fff;
+        }
+        .pkm-header {
+            background: #7fb3d5; /* 타입별 동적 변경 가능 */
+            padding: 10px 5px;
+            font-weight: bold;
+        }
+        .pkm-img-slot {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+        }
+        .pkm-info-row {
+            border-top: 1px solid #eee;
+            padding: 5px 2px;
+        }
+        .info-title {
+            font-weight: bold;
+            color: #666;
+            font-size: 11px;
+        }
+        .skill-list {
+            background: #f9f9f9;
+            padding: 5px 0;
+            line-height: 1.4;
+        }
+
+        /* 조작 창(컨트롤러) 스타일 */
+        .controls {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
         button {
-            background-color: #e05252;
+            width: 100%;
+            padding: 12px;
+            background: #007BFF;
             color: white;
             border: none;
-            cursor: pointer;
+            border-radius: 4px;
             font-weight: bold;
-            transition: 0.2s;
+            cursor: pointer;
+            margin-top: 10px;
         }
-        button:hover {
-            background-color: #c0392b;
-        }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
-    <h1>트레이너 카드 메이커</h1>
-
-    <div class="container">
-        <!-- 1. 카드 플레이트 (캡처 대상) -->
-        <div id="trainer-card">
-            <div class="card-header">TRAINER CARD</div>
-            <div class="card-body">
-                <div class="trainer-info">
-                    <p>NAME: <span id="card-name">지우</span></p>
-                    <p>ID No. <span id="card-id">00025</span></p>
-                </div>
+<div class="wrapper">
+    <!-- 왼쪽: 결과물 시트 -->
+    <div id="sheet-container">
+        <!-- 상단 세션 -->
+        <div class="top-section">
+            <div class="top-left">
+                <div class="trainer-name" id="view-name">이수연</div>
+                <div class="quote-box" id="view-q1">가자, 바다로.</div>
+                <div class="quote-box" id="view-q2">항상 고마워, 밀로틱.</div>
+                <div class="main-party-img">파티 일러스트 위치</div>
             </div>
-            <!-- 포켓몬 6마리 배치 구역 -->
-            <div class="pokemon-slots">
-                <div class="slot"><img id="pkm-1" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="피카츄"></div>
-                <div class="slot"><img id="pkm-2" src="" alt=""></div>
-                <div class="slot"><img id="pkm-3" src="" alt=""></div>
-                <div class="slot"><img id="pkm-4" src="" alt=""></div>
-                <div class="slot"><img id="pkm-5" src="" alt=""></div>
-                <div class="slot"><img id="pkm-6" src="" alt=""></div>
+            
+            <div class="top-right">
+                <div class="character-img">트레이너 일러스트</div>
+                <table class="profile-table">
+                    <tr><th>이름</th><td id="view-p-name">이수연</td></tr>
+                    <tr><th>성별</th><td id="view-p-gender">여성</td></tr>
+                    <tr><th>연령</th><td id="view-p-age">18세</td></tr>
+                    <tr><th>출신지</th><td id="view-p-town">마름꽃 마을</td></tr>
+                </table>
             </div>
         </div>
 
-        <!-- 2. 사용자가 편집하는 입력창 -->
-        <div class="controls">
-            <div class="input-group">
-                <label>트레이너 이름</label>
-                <input type="text" id="input-name" value="지우" oninput="updateName()">
+        <!-- 하단 포켓몬 6마리 세션 (예시로 1개만 구조화, 복사해서 6개 확장) -->
+        <div class="pokemon-grid">
+            <!-- 1번 포켓몬 -->
+            <div class="pkm-card">
+                <div class="pkm-header" id="p1-title">밀로틱 ♀</div>
+                <div class="pkm-img-slot">🔮</div>
+                <div class="pkm-info-row"><span class="info-title">타입</span><br><span id="p1-type">물</span></div>
+                <div class="pkm-info-row"><span class="info-title">성격</span><br><span id="p1-nature">냉정</span></div>
+                <div class="pkm-info-row"><span class="info-title">특성</span><br><span id="p1-ability">승기</span></div>
+                <div class="pkm-info-row"><span class="info-title">지닌도구</span><br><span id="p1-item">포커스렌즈</span></div>
+                <div class="skill-list">
+                    <div id="p1-s1">하이드로펌프</div>
+                    <div id="p1-s2">열탕</div>
+                    <div id="p1-s3">매혹의보이스</div>
+                    <div id="p1-s4">HP회복</div>
+                </div>
             </div>
-            <div class="input-group">
-                <label>1번 포켓몬 번호 (도감번호 입력)</label>
-                <input type="number" id="input-pkm-1" value="25" oninput="updatePokemon(1)">
-            </div>
-            <div class="input-group">
-                <label>2번 포켓몬 번호</label>
-                <input type="number" id="input-pkm-2" oninput="updatePokemon(2)">
-            </div>
-            <button onclick="downloadCard()">카드를 이미지로 저장</button>
+            <!-- 2번~6번 포켓몬 자리 (동일 구조 반복) -->
+            <div class="pkm-card"><div class="pkm-header">샤미드 ♂</div><div class="pkm-img-slot">💧</div></div>
+            <div class="pkm-card"><div class="pkm-header">글레이시아 ♂</div><div class="pkm-img-slot">❄️</div></div>
+            <div class="pkm-card"><div class="pkm-header">파비코리 ♀</div><div class="pkm-img-slot">☁️</div></div>
+            <div class="pkm-card"><div class="pkm-header">라프라스 ♀</div><div class="pkm-img-slot">🐢</div></div>
+            <div class="pkm-card"><div class="pkm-header">레시라무 -</div><div class="pkm-img-slot">🔥</div></div>
         </div>
     </div>
 
-    <script>
-        // 이름 실시간 업데이트
-        function updateName() {
-            const inputName = document.getElementById('input-name').value;
-            document.getElementById('card-name').innerText = inputName || '이름 없음';
-        }
+    <!-- 오른쪽: 입력 컨트롤러 -->
+    <div class="controls">
+        <h3>트레이너 정보 수정</h3>
+        <div class="control-group">
+            <label>트레이너 이름</label>
+            <input type="text" id="input-name" value="이수연" oninput="syncText('input-name', ['view-name', 'view-p-name'])">
+        </div>
+        <div class="control-group">
+            <label>한 줄 문구 1</label>
+            <input type="text" id="input-q1" value="가자, 바다로." oninput="syncText('input-q1', ['view-q1'])">
+        </div>
+        <div class="control-group">
+            <label>나이</label>
+            <input type="text" id="input-age" value="18세" oninput="syncText('input-age', ['view-p-age'])">
+        </div>
 
-        // 포켓몬 도감 번호 입력 시 무료 오픈 API(PokeAPI)에서 이미지 가져오기
-        function updatePokemon(slotNum) {
-            const pkmNum = document.getElementById(`input-pkm-${slotNum}`).value;
-            const imgTag = document.getElementById(`pkm-${slotNum}`);
-            
-            if(pkmNum) {
-                // 외부 사이트 이미지를 다운로드 캡처하기 위해 크로스오리진 처리가 된 URL 사용 권장
-                imgTag.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkmNum}.png`;
-            } else {
-                imgTag.src = "";
-            }
-        }
+        <h3>1번 포켓몬 편집</h3>
+        <div class="control-group">
+            <label>포켓몬 이름/성별</label>
+            <input type="text" id="input-p1-title" value="밀로틱 ♀" oninput="syncText('input-p1-title', ['p1-title'])">
+        </div>
+        <div class="control-group">
+            <label>기술 1</label>
+            <input type="text" id="input-p1-s1" value="하이드로펌프" oninput="syncText('input-p1-s1', ['p1-s1'])">
+        </div>
 
-        // html2canvas를 이용한 이미지 저장 기능
-        function downloadCard() {
-            const card = document.getElementById('trainer-card');
-            // 외부 이미지를 깨짐 없이 가져오기 위한 옵션(useCORS)
-            html2canvas(card, { useCORS: true }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'trainer-card.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        }
-    </script>
+        <button onclick="downloadSheet()">시트를 이미지로 저장</button>
+    </div>
+</div>
+
+<script>
+    // 입력창과 시트 텍스트 실시간 동기화 함수
+    function syncText(inputId, viewIds) {
+        const value = document.getElementById(inputId).value;
+        viewIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.innerText = value;
+        });
+    }
+
+    // 이미지 다운로드 기능
+    function downloadSheet() {
+        const sheet = document.getElementById('sheet-container');
+        html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'trainer-sheet.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+</script>
 </body>
 </html>
