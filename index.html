@@ -3,53 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 트레이너 상세 시트 메이커</title>
+    <title>포켓몬 트레이너 상세 시트 메이커 (사이드바 버전)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh; /* 화면 전체 높이 사용 */
             background-color: #f5f7fa;
+            overflow: hidden; /* 전체 스크롤 방지 */
+        }
+
+        /* [좌측 사이드바 편집창] */
+        .sidebar {
+            width: 360px;
+            min-width: 360px;
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            align-items: center;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .sidebar-header {
             padding: 20px;
+            background-color: #333;
+            color: #fff;
             margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
         }
-        /* 메인 컨테이너 (시트 + 컨트롤러) */
-        .wrapper {
+
+        /* 입력 폼 내부 스크롤 가능 구역 */
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto; /* 내용이 길어지면 사이드바 내부만 스크롤 */
+            flex: 1;
+        }
+
+        /* [우측 메인 워크스페이스 - 시트 미리보기 영역] */
+        .main-workspace {
+            flex: 1;
+            padding: 40px;
+            overflow-auto: auto; /* 시트가 크면 바깥 워크스페이스에서 스크롤 */
             display: flex;
-            gap: 30px;
-            max-width: 1200px;
-            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
         }
-        
-        /* 1. 이미지와 동일하게 캡처될 시트 영역 */
+
+        /* 캡처 대상 시트 컨테이너 (원본 비율 유지) */
         #sheet-container {
             width: 800px;
+            min-width: 800px;
             background: white;
             border: 1px solid #ccc;
             padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             box-sizing: border-box;
         }
-        
-        /* 상단 영역 레이아웃 */
+
+        /* --- 시트 내부 스타일 (상단 프로필) --- */
         .top-section {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
         }
-        .top-left {
-            width: 60%;
-        }
-        .top-right {
-            width: 35%;
-        }
+        .top-left { width: 60%; }
+        .top-right { width: 35%; }
         
-        /* 트레이너 이름 및 문구 */
         .trainer-name {
             font-size: 36px;
             font-weight: bold;
             margin-bottom: 15px;
+            letter-spacing: -1px;
         }
         .quote-box {
             background: #f0f0f0;
@@ -61,19 +92,28 @@
         .main-party-img {
             width: 100%;
             height: 250px;
-            background: #eee;
+            background: #eef2f5;
             margin-top: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            border: 1px dashed #cbd5e1;
+            color: #64748b;
         }
-
-        /* 프로필 테이블 */
+        .character-img {
+            width: 100%;
+            height: 200px;
+            background: #eef2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            border: 1px dashed #cbd5e1;
+            color: #64748b;
+        }
         .profile-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
             font-size: 14px;
         }
         .profile-table th, .profile-table td {
@@ -86,17 +126,8 @@
             color: white;
             width: 40%;
         }
-        .character-img {
-            width: 100%;
-            height: 200px;
-            background: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
 
-        /* 2. 하단 포켓몬 6마리 그리드 레이아웃 */
+        /* --- 시트 내부 스타일 (하단 포켓몬 그리드) --- */
         .pokemon-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -111,9 +142,10 @@
             background: #fff;
         }
         .pkm-header {
-            background: #7fb3d5; /* 타입별 동적 변경 가능 */
+            background: #7fb3d5; 
             padding: 10px 5px;
             font-weight: bold;
+            color: white;
         }
         .pkm-img-slot {
             height: 80px;
@@ -121,6 +153,7 @@
             align-items: center;
             justify-content: center;
             background: #fafafa;
+            font-size: 24px;
         }
         .pkm-info-row {
             border-top: 1px solid #eee;
@@ -128,155 +161,198 @@
         }
         .info-title {
             font-weight: bold;
-            color: #666;
+            color: #777;
             font-size: 11px;
         }
         .skill-list {
             background: #f9f9f9;
             padding: 5px 0;
-            line-height: 1.4;
+            line-height: 1.5;
+            border-top: 1px solid #eee;
         }
 
-        /* 조작 창(컨트롤러) 스타일 */
-        .controls {
-            flex: 1;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            height: fit-content;
+        /* --- 사이드바 내부 UI 컴포넌트 스타일 --- */
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #1a1a1a;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
         }
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         label {
             display: block;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 14px;
+            color: #4b5563;
+            margin-bottom: 4px;
         }
         input, select {
             width: 100%;
-            padding: 8px;
+            padding: 8px 10px;
             box-sizing: border-box;
-            border: 1px solid #ccc;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
+            font-size: 13px;
         }
-        button {
+        input:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .btn-save {
             width: 100%;
-            padding: 12px;
-            background: #007BFF;
+            padding: 14px;
+            background-color: #2563eb;
             color: white;
             border: none;
             border-radius: 4px;
             font-weight: bold;
+            font-size: 14px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 20px;
+            transition: background 0.2s;
         }
-        button:hover { background: #0056b3; }
+        .btn-save:hover { background-color: #1d4ed8; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <!-- 왼쪽: 결과물 시트 -->
-    <div id="sheet-container">
-        <!-- 상단 세션 -->
-        <div class="top-section">
-            <div class="top-left">
-                <div class="trainer-name" id="view-name">이수연</div>
-                <div class="quote-box" id="view-q1">가자, 바다로.</div>
-                <div class="quote-box" id="view-q2">항상 고마워, 밀로틱.</div>
-                <div class="main-party-img">파티 일러스트 위치</div>
-            </div>
+    <!-- 1. 좌측 사이드바 편집창 영역 -->
+    <div class="sidebar">
+        <div class="sidebar-header">📋 시트 편집 메뉴</div>
+        <div class="sidebar-content">
             
-            <div class="top-right">
-                <div class="character-img">트레이너 일러스트</div>
-                <table class="profile-table">
-                    <tr><th>이름</th><td id="view-p-name">이수연</td></tr>
-                    <tr><th>성별</th><td id="view-p-gender">여성</td></tr>
-                    <tr><th>연령</th><td id="view-p-age">18세</td></tr>
-                    <tr><th>출신지</th><td id="view-p-town">마름꽃 마을</td></tr>
-                </table>
+            <div class="section-title" style="margin-top:0;">트레이너 기본 정보</div>
+            <div class="control-group">
+                <label>트레이너 이름</label>
+                <input type="text" id="input-name" value="이수연" oninput="syncText('input-name', ['view-name', 'view-p-name'])">
             </div>
-        </div>
+            <div class="control-group">
+                <label>한 줄 문구 1</label>
+                <input type="text" id="input-q1" value="가자, 바다로." oninput="syncText('input-q1', ['view-q1'])">
+            </div>
+            <div class="control-group">
+                <label>한 줄 문구 2</label>
+                <input type="text" id="input-q2" value="항상 고마워, 밀로틱." oninput="syncText('input-q2', ['view-q2'])">
+            </div>
+            <div class="control-group">
+                <label>성별</label>
+                <input type="text" id="input-gender" value="여성" oninput="syncText('input-gender', ['view-p-gender'])">
+            </div>
+            <div class="control-group">
+                <label>연령 / 나이</label>
+                <input type="text" id="input-age" value="18세" oninput="syncText('input-age', ['view-p-age'])">
+            </div>
+            <div class="control-group">
+                <label>출신지</label>
+                <input type="text" id="input-town" value="마름꽃 마을" oninput="syncText('input-town', ['view-p-town'])">
+            </div>
 
-        <!-- 하단 포켓몬 6마리 세션 (예시로 1개만 구조화, 복사해서 6개 확장) -->
-        <div class="pokemon-grid">
-            <!-- 1번 포켓몬 -->
-            <div class="pkm-card">
-                <div class="pkm-header" id="p1-title">밀로틱 ♀</div>
-                <div class="pkm-img-slot">🔮</div>
-                <div class="pkm-info-row"><span class="info-title">타입</span><br><span id="p1-type">물</span></div>
-                <div class="pkm-info-row"><span class="info-title">성격</span><br><span id="p1-nature">냉정</span></div>
-                <div class="pkm-info-row"><span class="info-title">특성</span><br><span id="p1-ability">승기</span></div>
-                <div class="pkm-info-row"><span class="info-title">지닌도구</span><br><span id="p1-item">포커스렌즈</span></div>
-                <div class="skill-list">
-                    <div id="p1-s1">하이드로펌프</div>
-                    <div id="p1-s2">열탕</div>
-                    <div id="p1-s3">매혹의보이스</div>
-                    <div id="p1-s4">HP회복</div>
+            <div class="section-title">포켓몬 #1 설정</div>
+            <div class="control-group">
+                <label>포켓몬 이름 및 성별</label>
+                <input type="text" id="input-p1-title" value="밀로틱 ♀" oninput="syncText('input-p1-title', ['p1-title'])">
+            </div>
+            <div class="control-group">
+                <label>타입 명시</label>
+                <input type="text" id="input-p1-type" value="물" oninput="syncText('input-p1-type', ['p1-type'])">
+            </div>
+            <div class="control-group">
+                <label>성격</label>
+                <input type="text" id="input-p1-nature" value="냉정" oninput="syncText('input-p1-nature', ['p1-nature'])">
+            </div>
+            <div class="control-group">
+                <label>특성</label>
+                <input type="text" id="input-p1-ability" value="승기" oninput="syncText('input-p1-ability', ['p1-ability'])">
+            </div>
+            <div class="control-group">
+                <label>지닌 도구</label>
+                <input type="text" id="input-p1-item" value="포커스렌즈" oninput="syncText('input-p1-item', ['p1-item'])">
+            </div>
+            <div class="control-group"><label>기술 1</label><input type="text" id="input-p1-s1" value="하이드로펌프" oninput="syncText('input-p1-s1', ['p1-s1'])"></div>
+            <div class="control-group"><label>기술 2</label><input type="text" id="input-p1-s2" value="열탕" oninput="syncText('input-p1-s2', ['p1-s2'])"></div>
+            <div class="control-group"><label>기술 3</label><input type="text" id="input-p1-s3" value="매혹의보이스" oninput="syncText('input-p1-s3', ['p1-s3'])"></div>
+            <div class="control-group"><label>기술 4</label><input type="text" id="input-p1-s4" value="HP회복" oninput="syncText('input-p1-s4', ['p1-s4'])"></div>
+
+            <button class="btn-save" onclick="downloadSheet()">💾 시트를 이미지로 저장</button>
+        </div>
+    </div>
+
+    <!-- 2. 우측 워크스페이스 실시간 미리보기 영역 -->
+    <div class="main-workspace">
+        <div id="sheet-container">
+            <!-- 상단 레이아웃 -->
+            <div class="top-section">
+                <div class="top-left">
+                    <div class="trainer-name" id="view-name">이수연</div>
+                    <div class="quote-box" id="view-q1">가자, 바다로.</div>
+                    <div class="quote-box" id="view-q2">항상 고마워, 밀로틱.</div>
+                    <div class="main-party-img">대형 파티 일러스트 영역</div>
+                </div>
+                
+                <div class="top-right">
+                    <div class="character-img">캐릭터 일러스트</div>
+                    <table class="profile-table">
+                        <tr><th>이름</th><td id="view-p-name">이수연</td></tr>
+                        <tr><th>성별</th><td id="view-p-gender">여성</td></tr>
+                        <tr><th>연령</th><td id="view-p-age">18세</td></tr>
+                        <tr><th>출신지</th><td id="view-p-town">마름꽃 마을</td></tr>
+                    </table>
                 </div>
             </div>
-            <!-- 2번~6번 포켓몬 자리 (동일 구조 반복) -->
-            <div class="pkm-card"><div class="pkm-header">샤미드 ♂</div><div class="pkm-img-slot">💧</div></div>
-            <div class="pkm-card"><div class="pkm-header">글레이시아 ♂</div><div class="pkm-img-slot">❄️</div></div>
-            <div class="pkm-card"><div class="pkm-header">파비코리 ♀</div><div class="pkm-img-slot">☁️</div></div>
-            <div class="pkm-card"><div class="pkm-header">라프라스 ♀</div><div class="pkm-img-slot">🐢</div></div>
-            <div class="pkm-card"><div class="pkm-header">레시라무 -</div><div class="pkm-img-slot">🔥</div></div>
+
+            <!-- 하단 포켓몬 6마리 바둑판 배정 -->
+            <div class="pokemon-grid">
+                <!-- 포켓몬 1 -->
+                <div class="pkm-card">
+                    <div class="pkm-header" id="p1-title">밀로틱 ♀</div>
+                    <div class="pkm-img-slot">🔮</div>
+                    <div class="pkm-info-row"><span class="info-title">타입</span><br><span id="p1-type">물</span></div>
+                    <div class="pkm-info-row"><span class="info-title">성격</span><br><span id="p1-nature">냉정</span></div>
+                    <div class="pkm-info-row"><span class="info-title">특성</span><br><span id="p1-ability">승기</span></div>
+                    <div class="pkm-info-row"><span class="info-title">지닌도구</span><br><span id="p1-item">포커스렌즈</span></div>
+                    <div class="skill-list">
+                        <div id="p1-s1">하이드로펌프</div>
+                        <div id="p1-s2">열탕</div>
+                        <div id="p1-s3">매혹의보이스</div>
+                        <div id="p1-s4">HP회복</div>
+                    </div>
+                </div>
+                <!-- 나머지 슬롯 (구조 가시성용 배치) -->
+                <div class="pkm-card"><div class="pkm-header">샤미드 ♂</div><div class="pkm-img-slot">💧</div></div>
+                <div class="pkm-card"><div class="pkm-header">글레이시아 ♂</div><div class="pkm-img-slot">❄️</div></div>
+                <div class="pkm-card"><div class="pkm-header">파비코리 ♀</div><div class="pkm-img-slot">☁️</div></div>
+                <div class="pkm-card"><div class="pkm-header">라프라스 ♀</div><div class="pkm-img-slot">🐢</div></div>
+                <div class="pkm-card"><div class="pkm-header">레시라무 -</div><div class="pkm-img-slot">🔥</div></div>
+            </div>
         </div>
     </div>
 
-    <!-- 오른쪽: 입력 컨트롤러 -->
-    <div class="controls">
-        <h3>트레이너 정보 수정</h3>
-        <div class="control-group">
-            <label>트레이너 이름</label>
-            <input type="text" id="input-name" value="이수연" oninput="syncText('input-name', ['view-name', 'view-p-name'])">
-        </div>
-        <div class="control-group">
-            <label>한 줄 문구 1</label>
-            <input type="text" id="input-q1" value="가자, 바다로." oninput="syncText('input-q1', ['view-q1'])">
-        </div>
-        <div class="control-group">
-            <label>나이</label>
-            <input type="text" id="input-age" value="18세" oninput="syncText('input-age', ['view-p-age'])">
-        </div>
+    <script>
+        // 글자 동기화 스크립트
+        function syncText(inputId, viewIds) {
+            const value = document.getElementById(inputId).value;
+            viewIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.innerText = value;
+            });
+        }
 
-        <h3>1번 포켓몬 편집</h3>
-        <div class="control-group">
-            <label>포켓몬 이름/성별</label>
-            <input type="text" id="input-p1-title" value="밀로틱 ♀" oninput="syncText('input-p1-title', ['p1-title'])">
-        </div>
-        <div class="control-group">
-            <label>기술 1</label>
-            <input type="text" id="input-p1-s1" value="하이드로펌프" oninput="syncText('input-p1-s1', ['p1-s1'])">
-        </div>
-
-        <button onclick="downloadSheet()">시트를 이미지로 저장</button>
-    </div>
-</div>
-
-<script>
-    // 입력창과 시트 텍스트 실시간 동기화 함수
-    function syncText(inputId, viewIds) {
-        const value = document.getElementById(inputId).value;
-        viewIds.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) element.innerText = value;
-        });
-    }
-
-    // 이미지 다운로드 기능
-    function downloadSheet() {
-        const sheet = document.getElementById('sheet-container');
-        html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'trainer-sheet.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
-    }
-</script>
+        // 이미지 파일 다운로드 스크립트
+        function downloadSheet() {
+            const sheet = document.getElementById('sheet-container');
+            // 고화질 저장을 위한 캡처 비율 증가 옵션(scale: 2) 추가
+            html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'trainer-profile-sheet.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
 </body>
 </html>
