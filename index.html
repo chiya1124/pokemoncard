@@ -61,29 +61,21 @@
         .nav-icon { font-size: 16px; font-weight: bold; }
         .side-nav-divider { width: 32px; height: 1px; background-color: #e2e8f0; margin: 4px 0; }
 
-        /* -------------------------------------------
-           ✨ 핵심: 요청하신 원본 스타일 패널 구성
-        ------------------------------------------- */
+        /* 오리지널 스타일 적용 패널 */
         .edit-panel-content { flex: 1; height: 100%; overflow: hidden; }
         
         .section-panel { display: none; height: 100%; flex-direction: column; background: #fff; }
         .section-panel.active { display: flex; }
         
-        /* 헤더 스타일 */
-        .section-panel-header {
-            padding: 18px 20px; border-bottom: 1px solid #f1f5f9; background: #fff;
-        }
-        .section-panel-title {
-            font-size: 15px; font-weight: bold; color: #0f172a; display: flex; align-items: center; gap: 8px;
-        }
+        .section-panel-header { padding: 18px 20px; border-bottom: 1px solid #f1f5f9; background: #fff; }
+        .section-panel-title { font-size: 15px; font-weight: bold; color: #0f172a; display: flex; align-items: center; gap: 8px; }
         .section-panel-badge {
             background: #0284c7; color: white; width: 22px; height: 22px; border-radius: 4px;
             display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
         }
         .section-panel-sub { font-size: 10px; color: #94a3b8; font-weight: bold; margin-top: 2px; padding-left: 30px; }
-        
-        /* 바디 및 입력 폼 라인 */
         .section-panel-body { padding: 20px; overflow-y: auto; flex: 1; }
+        
         .field-row { margin-bottom: 16px; }
         .field-label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 6px; }
         .field-input {
@@ -92,6 +84,16 @@
         }
         .field-input:focus { border-color: #0284c7; outline: none; }
         textarea.field-input { resize: vertical; min-height: 60px; font-family: inherit; }
+
+        /* -------------------------------------------
+           ✨ 포켓몬 서브 스타일 컴포넌트 추가
+        ------------------------------------------- */
+        .sticker-section-sub ul { margin: 0; padding-left: 18px; font-size: 11.5px; color: #64748b; line-height: 1.6; }
+        
+        /* 스프라이트 모드 버튼 그룹 */
+        .sprite-mode-toggle { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 8px; margin-bottom: 15px; }
+        .sprite-mode-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: bold; color: #64748b; text-align: center; border-radius: 6px; }
+        .sprite-mode-btn.active { background: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
         .info-msg { font-size: 12px; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
 
@@ -107,7 +109,6 @@
         .main-party-img, .character-img { width: 100%; height: 220px; background: #f8fafc; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; color: #94a3b8; font-size: 13px; margin-top: 15px; }
         .character-img { height: 160px; margin-bottom: 10px; margin-top: 0; }
         
-        /* 프로필 테이블 고도화 */
         .profile-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .profile-table th, .profile-table td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
         .profile-table th { background-color: #1e293b; color: white; width: 30%; text-align: center; }
@@ -115,7 +116,7 @@
         
         .pokemon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; border-top: 2px solid #1e293b; padding-top: 15px; }
         .pkm-card { border: 1px solid #e2e8f0; text-align: center; font-size: 12px; background: #fff; min-height: 120px; }
-        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; }
+        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; transition: background 0.2s; }
         .pkm-img-slot { height: 75px; display: flex; align-items: center; justify-content: center; background: #fafafa; font-size: 20px; color: #cbd5e1; }
     </style>
 </head>
@@ -178,7 +179,7 @@
             <!-- 상세 입력 패널 영역 -->
             <div class="edit-panel-content">
                 
-                <!-- ✨ 요청 서식 커스텀: [트레이너 정보] 패널 -->
+                <!-- [트레이너 정보] 패널 -->
                 <div class="section-panel active" id="sec-name">
                     <div class="section-panel-header">
                         <div class="section-panel-title"><span class="section-panel-badge">T</span>트레이너</div>
@@ -212,22 +213,50 @@
                     </div>
                 </div>
 
-                <!-- [포켓몬 메뉴] -->
+                <!-- ✨ [포켓몬 엔트리] 패널 이식 완동 -->
                 <div class="section-panel" id="sec-pokemon">
                     <div class="section-panel-header">
-                        <div class="section-panel-title"><span class="section-panel-badge">P</span>포켓몬 엔트리</div>
-                        <div class="section-panel-sub">POKEMON PARTY</div>
+                        <div class="section-panel-title">
+                            <span class="section-panel-badge" style="display:flex;align-items:center;justify-content:center;">
+                                <svg width="10" height="10" viewBox="0 0 100 100">
+                                    <path d="M2.2,46 A48,48 0 0,1 97.8,46 L71.6,46 A22,22 0 0,0 28.4,46 Z" fill="white"/>
+                                    <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="white"/>
+                                    <circle cx="50" cy="50" r="10" fill="white"/>
+                                </svg>
+                            </span>
+                            포켓몬 엔트리
+                        </div>
+                        <div class="section-panel-sub">POKÉMON ENTRY</div>
                     </div>
                     <div class="section-panel-body">
-                        <div class="field-row"><label class="field-label">포켓몬 1</label><input class="field-input" type="text" id="input-p1" placeholder="이름 입력" oninput="syncText('input-p1', ['p1-title'], '포켓몬 #1')"></div>
-                        <div class="field-row"><label class="field-label">포켓몬 2</label><input class="field-input" type="text" id="input-p2" placeholder="이름 입력" oninput="syncText('input-p2', ['p2-title'], '포켓몬 #2')"></div>
+                        <div class="sticker-section-sub" style="margin-bottom:10px;">
+                            <ul>
+                                <li>포켓몬 이름을 한글로 검색하면 자동완성이 표시됩니다.</li>
+                                <li>선택 시 이미지와 타입이 자동으로 시트에 추가됩니다.</li>
+                                <li>이미지 로딩 시간이 조금 있습니다.</li>
+                                <li><span style="color:#7C6FCF; font-weight:700;">⚠ 도트는 비공식 이미지가 포함되어 있습니다.</span></li>
+                                <li><a href="https://pokemonkorea.co.kr/pokedex" target="_blank" rel="noopener" style="color:#64748b;text-decoration:underline;text-underline-offset:2px;">공식 포켓몬 도감</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 스프라이트 모드 토글 -->
+                        <div class="sprite-mode-toggle">
+                            <button id="sprite-mode-illust" class="sprite-mode-btn active" onclick="setSpriteMode('illust')">일러스트</button>
+                            <button id="sprite-mode-dot" class="sprite-mode-btn" onclick="setSpriteMode('dot')">도트</button>
+                        </div>
+                        
+                        <!-- 로딩 배너 -->
+                        <div id="poke-load-banner" style="display:none;"></div>
+                        
+                        <!-- 슬롯 1~6 폼 배치 컨테이너 -->
+                        <div id="pokemon-slots-panel"></div>
                     </div>
                 </div>
 
-                <!-- [나머지 메뉴 메뉴 그룹] -->
-                <div class="section-panel" id="sec-image"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">I</span>이미지</div></div><div class="section-panel-body"><p class="info-msg">📸 이미지 업로드 설정 공간</p></div></div>
-                <div class="section-panel" id="sec-color"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">C</span>컬러</div></div><div class="section-panel-body"><p class="info-msg">🎨 색상 커스텀 공간</p></div></div>
-                <div class="section-panel" id="sec-sticker"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">★</span>스티커</div></div><div class="section-panel-body"><p class="info-msg">★ 스티커 배치 공간</p></div></div>
+                <!-- [나머지 더미 공간] -->
+                <div class="section-panel" id="sec-image"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">I</span>이미지</div></div><div class="section-panel-body"><p class="info-msg">📸 이미지 업로드 공간</p></div></div>
+                <div class="section-panel" id="sec-color"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">C</span>컬러</div></div><div class="section-panel-body"><p class="info-msg">🎨 색상 설정 공간</p></div></div>
+                <div class="section-panel" id="sec-sticker"><div class="section-panel-header"><div class="section-panel-title"><span class="section-panel-badge">★</span>스티커</div></div><div class="section-panel-body"><p class="info-msg">★ 스티커 커스텀 공간</p></div></div>
 
             </div>
         </div>
@@ -243,7 +272,6 @@
                     </div>
                     <div class="top-right">
                         <div class="character-img">트레이너 일러스트</div>
-                        <!-- 6개 항목 맞춤 테이블 세팅 -->
                         <table class="profile-table">
                             <tr><th>이름</th><td id="view-p-name">트레이너명</td></tr>
                             <tr><th>나이</th><td id="view-p-age">-</td></tr>
@@ -254,13 +282,14 @@
                     </div>
                 </div>
 
+                <!-- 실시간 동기화 타겟 grid -->
                 <div class="pokemon-grid">
                     <div class="pkm-card"><div class="pkm-header" id="p1-title">포켓몬 #1</div><div class="pkm-img-slot">?</div></div>
                     <div class="pkm-card"><div class="pkm-header" id="p2-title">포켓몬 #2</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #3</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #4</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #5</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #6</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p3-title">포켓몬 #3</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p4-title">포켓몬 #4</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p5-title">포켓몬 #5</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p6-title">포켓몬 #6</div><div class="pkm-img-slot">?</div></div>
                 </div>
             </div>
         </div>
@@ -268,7 +297,36 @@
     </div>
 
     <script>
-        // 1. 세로 내비게이션 전환 스크립트
+        // 초기 로드 시 6개의 포켓몬 입력 슬롯 자동 생성 및 바인딩
+        window.addEventListener('DOMContentLoaded', () => {
+            const slotsPanel = document.getElementById('pokemon-slots-panel');
+            let htmlBuffer = '';
+            
+            for(let i = 1; i <= 6; i++) {
+                htmlBuffer += `
+                    <div class="field-row">
+                        <label class="field-label">포켓몬 ${i} 명칭</label>
+                        <input class="field-input" type="text" id="tc-pkm-input-${i}" placeholder="예: 피카츄" oninput="syncText('tc-pkm-input-${i}', ['p${i}-title'], '포켓몬 #${i}')">
+                    </div>
+                `;
+            }
+            slotsPanel.innerHTML = htmlBuffer;
+        });
+
+        // 스프라이트 모드 (일러스트 / 도트) 토글 핸들러
+        function setSpriteMode(mode) {
+            document.getElementById('sprite-mode-illust').classList.remove('active');
+            document.getElementById('sprite-mode-dot').classList.remove('active');
+            
+            if(mode === 'illust') {
+                document.getElementById('sprite-mode-illust').classList.add('active');
+            } else {
+                document.getElementById('sprite-mode-dot').classList.add('active');
+            }
+            // 이후 데이터 API 연동 시 분기 로직이 들어갈 영역입니다.
+        }
+
+        // 세로 내비게이션 전환 스크립트
         function switchSection(event, sectionName) {
             const buttons = document.querySelectorAll('.side-nav-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
@@ -280,7 +338,7 @@
             document.getElementById(`sec-${sectionName}`).classList.add('active');
         }
 
-        // 2. 패널 열고 닫기
+        // 패널 열고 닫기
         function togglePanel() {
             const panel = document.getElementById('edit-panel');
             const icon = document.getElementById('panel-toggle-icon');
@@ -288,7 +346,7 @@
             icon.style.transform = panel.classList.contains('hide') ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
-        // 3. 텍스트 실시간 연동
+        // 텍스트 실시간 연동
         function syncText(inputId, viewIds, defaultText) {
             const value = document.getElementById(inputId).value;
             viewIds.forEach(id => {
@@ -297,7 +355,7 @@
             });
         }
 
-        // 4. PNG 저장
+        // PNG 저장
         function saveAsPNG() {
             const sheet = document.getElementById('sheet-container');
             html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
