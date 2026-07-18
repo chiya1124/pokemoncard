@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포켓몬 트레이너 카드 메이커</title>
+    <!-- 화면을 이미지로 캡처해주는 html2canvas 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+            max-width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        /* 트레이너 카드 디자인 */
+        #trainer-card {
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, #e05252, #992222);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+        .card-header {
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 2px solid rgba(255,255,255,0.4);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .card-body {
+            display: flex;
+            justify-content: space-between;
+        }
+        .trainer-info {
+            font-size: 16px;
+        }
+        /* 포켓몬 슬롯 스타일 */
+        .pokemon-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .slot {
+            width: 55px;
+            height: 55px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .slot img {
+            width: 100%;
+            height: auto;
+        }
+        /* 조작 창 스타일 */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 300px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        input, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #e05252;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>트레이너 카드 메이커</h1>
+
+    <div class="container">
+        <!-- 1. 카드 플레이트 (캡처 대상) -->
+        <div id="trainer-card">
+            <div class="card-header">TRAINER CARD</div>
+            <div class="card-body">
+                <div class="trainer-info">
+                    <p>NAME: <span id="card-name">지우</span></p>
+                    <p>ID No. <span id="card-id">00025</span></p>
+                </div>
+            </div>
+            <!-- 포켓몬 6마리 배치 구역 -->
+            <div class="pokemon-slots">
+                <div class="slot"><img id="pkm-1" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="피카츄"></div>
+                <div class="slot"><img id="pkm-2" src="" alt=""></div>
+                <div class="slot"><img id="pkm-3" src="" alt=""></div>
+                <div class="slot"><img id="pkm-4" src="" alt=""></div>
+                <div class="slot"><img id="pkm-5" src="" alt=""></div>
+                <div class="slot"><img id="pkm-6" src="" alt=""></div>
+            </div>
+        </div>
+
+        <!-- 2. 사용자가 편집하는 입력창 -->
+        <div class="controls">
+            <div class="input-group">
+                <label>트레이너 이름</label>
+                <input type="text" id="input-name" value="지우" oninput="updateName()">
+            </div>
+            <div class="input-group">
+                <label>1번 포켓몬 번호 (도감번호 입력)</label>
+                <input type="number" id="input-pkm-1" value="25" oninput="updatePokemon(1)">
+            </div>
+            <div class="input-group">
+                <label>2번 포켓몬 번호</label>
+                <input type="number" id="input-pkm-2" oninput="updatePokemon(2)">
+            </div>
+            <button onclick="downloadCard()">카드를 이미지로 저장</button>
+        </div>
+    </div>
+
+    <script>
+        // 이름 실시간 업데이트
+        function updateName() {
+            const inputName = document.getElementById('input-name').value;
+            document.getElementById('card-name').innerText = inputName || '이름 없음';
+        }
+
+        // 포켓몬 도감 번호 입력 시 무료 오픈 API(PokeAPI)에서 이미지 가져오기
+        function updatePokemon(slotNum) {
+            const pkmNum = document.getElementById(`input-pkm-${slotNum}`).value;
+            const imgTag = document.getElementById(`pkm-${slotNum}`);
+            
+            if(pkmNum) {
+                // 외부 사이트 이미지를 다운로드 캡처하기 위해 크로스오리진 처리가 된 URL 사용 권장
+                imgTag.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkmNum}.png`;
+            } else {
+                imgTag.src = "";
+            }
+        }
+
+        // html2canvas를 이용한 이미지 저장 기능
+        function downloadCard() {
+            const card = document.getElementById('trainer-card');
+            // 외부 이미지를 깨짐 없이 가져오기 위한 옵션(useCORS)
+            html2canvas(card, { useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'trainer-card.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
