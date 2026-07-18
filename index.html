@@ -3,122 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 트레이너 시트 메이커</title>
-    <!-- 캡처 라이브러리 -->
+    <title>포켓몬 트레이너 시트 메이커 (사이드 내비 버전)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 기본 초기화 */
+        /* 기본 레이아웃 구성 */
         * { box-sizing: border-box; }
         body {
             font-family: 'Malgun Gothic', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f5f7fa;
-            overflow: hidden;
+            margin: 0; padding: 0; display: flex; flex-direction: column;
+            height: 100vh; background-color: #f5f7fa; overflow: hidden;
         }
 
-        /* [1. app-header] 최상단 헤더 바 */
+        /* [1. app-header] */
         .app-header {
-            height: 56px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 100;
+            height: 56px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100;
         }
-        .app-header-left { display: flex; align-items: center; gap: 12px; }
-        .app-header-right { display: flex; align-items: center; gap: 8px; }
+        .app-header-left, .app-header-right { display: flex; align-items: center; gap: 12px; }
+        .app-title { font-weight: bold; font-size: 16px; color: #1e293b; }
         
-        .app-title { font-weight: bold; font-size: 16px; color: #1e293b; letter-spacing: 0.5px; }
-        
-        /* 버튼 스타일들 */
-        
+        button { cursor: pointer; border: none; background: none; transition: all 0.2s; }
+        .panel-toggle-btn {
+            width: 32px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; background: #fff;
+        }
+        #panel-toggle-icon { transition: transform 0.3s; }
         .save-btn {
             background-color: #2563eb; color: white; padding: 8px 16px;
-            border-radius: 6px; font-weight: bold; font-size: 13px;
-            display: flex; align-items: center; gap: 6px;
+            border-radius: 6px; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 6px;
         }
         .save-btn:hover { background-color: #1d4ed8; }
-        #hub-btn, #tour-trigger-btn { font-size: 16px; padding: 4px 8px; border-radius: 4px; }
-        #hub-btn:hover, #tour-trigger-btn:hover { background: #f1f5f9; }
 
-        /* [2. app-body] 메인 콘텐츠 몸통 컨테이너 */
-        .app-body {
-            display: flex;
-            flex-direction: row;
-            flex: 1;
-            height: calc(100vh - 56px);
-            position: relative;
-        }
+        /* [2. app-body] */
+        .app-body { display: flex; flex-direction: row; flex: 1; height: calc(100vh - 56px); position: relative; }
 
-        /* [3. edit-panel] 좌측 편집 패널 (사이드바) */
+        /* -------------------------------------------
+           ✨ 핵심: [3. edit-panel] 구조 리모델링
+        ------------------------------------------- */
         .edit-panel {
-            width: 360px;
-            min-width: 360px;
-            background-color: #ffffff;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+            width: 380px; min-width: 380px; background-color: #ffffff;
+            border-right: 1px solid #e0e0e0; display: flex; flex-direction: row; height: 100%;
             transition: margin-left 0.3s ease, opacity 0.3s ease;
         }
-        /* 패널이 닫혔을 때 왼쪽으로 숨기는 클래스 */
-        .edit-panel.hide {
-            margin-left: -360px;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .edit-panel-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
+        .edit-panel.hide { margin-left: -380px; opacity: 0; pointer-events: none; }
 
-        /* [4. preview-area] 우측 실시간 미리보기 구역 */
-        .preview-area {
-            flex: 1;
-            padding: 40px;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            background-color: #f8fafc;
+        /* 좌측 아이콘 세로 내비 바 (고정 폭 70px) */
+        .side-nav {
+            width: 70px; min-width: 70px; background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0; display: flex; flex-direction: column;
+            align-items: center; padding-top: 15px; gap: 8px;
         }
+        .side-nav-btn {
+            width: 56px; height: 56px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 8px;
+            color: #64748b; font-size: 10px; font-weight: bold; gap: 4px;
+        }
+        .side-nav-btn:hover { background-color: #f1f5f9; color: #1e293b; }
+        .side-nav-btn.active { background-color: #e0f2fe; color: #0284c7; }
+        .nav-icon { font-size: 16px; font-weight: bold; }
+        .side-nav-divider { width: 32px; height: 1px; background-color: #e2e8f0; margin: 4px 0; }
 
-        /* --- 프리뷰 내부 실제 카드 시트 틀 --- */
-        #sheet-container {
-            width: 800px; min-width: 800px; background: white;
-            border: 1px solid #cbd5e1; padding: 30px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        }
+        /* 우측 상세 입력창 영역 (폭 310px) */
+        .edit-panel-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* [4. preview-area] */
+        .preview-area { flex: 1; padding: 40px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; background-color: #f8fafc; }
+
+        /* --- 프리뷰 카드 시트 틀 --- */
+        #sheet-container { width: 800px; min-width: 800px; background: white; border: 1px solid #cbd5e1; padding: 30px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
         .top-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .top-left { width: 60%; }
-        .top-right { width: 35%; }
-        .trainer-name { font-size: 36px; font-weight: bold; margin-bottom: 15px; min-height: 48px; color: #1e293b; }
-        .quote-box { background: #f1f5f9; border-left: 5px solid #10b981; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; min-height: 36px; color: #475569; }
+        .top-left { width: 60%; } .top-right { width: 35%; }
+        .trainer-name { font-size: 36px; font-weight: bold; margin-bottom: 15px; min-height: 48px; }
+        .quote-box { background: #f1f5f9; border-left: 5px solid #10b981; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; min-height: 36px; }
         .main-party-img, .character-img { width: 100%; height: 220px; background: #f8fafc; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; color: #94a3b8; font-size: 13px; margin-top: 15px; }
         .character-img { height: 180px; margin-bottom: 5px; margin-top: 0; }
         .profile-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .profile-table th, .profile-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
-        .profile-table th { background-color: #1e293b; color: white; width: 40%; }
-        .profile-table td { color: #334155; min-width: 80px; }
+        .profile-table th { background-color: #1e293b; color: white; }
         
         .pokemon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; border-top: 2px solid #1e293b; padding-top: 15px; }
         .pkm-card { border: 1px solid #e2e8f0; text-align: center; font-size: 12px; background: #fff; min-height: 120px; }
-        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; transition: background 0.2s; }
+        .pkm-header { background: #94a3b8; padding: 8px 5px; font-weight: bold; color: white; min-height: 31px; }
         .pkm-img-slot { height: 75px; display: flex; align-items: center; justify-content: center; background: #fafafa; font-size: 20px; color: #cbd5e1; }
 
-        /* 편집 폼 구성요소 스타일 */
-        .section-title { font-size: 14px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #2563eb; padding-bottom: 4px; margin: 20px 0 12px 0; }
+        /* 입력 폼 디자인 */
+        .section-title { font-size: 14px; font-weight: bold; color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin: 5px 0 15px 0; }
         .control-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
         input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
-        input:focus { border-color: #2563eb; outline: none; }
+        input:focus { border-color: #0284c7; outline: none; }
+        .info-msg { font-size: 12px; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -126,53 +102,107 @@
     <!-- 1. app-header -->
     <div class="app-header">
         <div class="app-header-left">
-            <button class="panel-toggle-btn" id="panel-toggle-btn" onclick="togglePanel()" title="편집 패널 열기/닫기">
+            <button class="panel-toggle-btn" onclick="togglePanel()" title="편집 패널 열기/닫기">
                 <svg id="panel-toggle-icon" width="10" height="12" viewBox="0 0 10 12" fill="none">
                     <path d="M7 1L2 6L7 11" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
             </button>
             <div class="app-title">TRAINER CARD MAKER</div>
-           
         </div>
         <div class="app-header-right">
-            <button class="save-btn" onclick="saveAsPNG()">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <path d="M6.5 1v7M3.5 5.5L6.5 9l3-3.5M1.5 10.5h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-                PNG 저장
-            </button>
+            <button class="save-btn" onclick="saveAsPNG()">💾 PNG 저장</button>
         </div>
     </div>
 
     <!-- 2. app-body -->
     <div class="app-body">
         
-        <!-- 3. edit-panel (좌측 편집 사이드바) -->
+        <!-- 3. edit-panel (세로 내비 조합형) -->
         <div class="edit-panel" id="edit-panel">
+            
+            <!-- 요청하신 아이콘 네비 삽입 -->
+            <nav class="side-nav">
+                <button class="side-nav-btn active" onclick="switchSection(event, 'name')" title="트레이너">
+                    <span class="nav-icon">T</span>
+                    <span class="nav-label">트레이너</span>
+                </button>
+                <button class="side-nav-btn" onclick="switchSection(event, 'pokemon')" title="포켓몬">
+                    <span class="nav-icon" style="display:flex;align-items:center;justify-content:center;">
+                        <svg width="13" height="13" viewBox="0 0 100 100">
+                            <path d="M2.2,46 A48,48 0 0,1 97.8,46 L71.6,46 A22,22 0 0,0 28.4,46 Z" fill="currentColor"/>
+                            <path d="M2.2,54 A48,48 0 0,0 97.8,54 L71.6,54 A22,22 0 0,1 28.4,54 Z" fill="currentColor"/>
+                            <circle cx="50" cy="50" r="10" fill="currentColor"/>
+                        </svg>
+                    </span>
+                    <span class="nav-label">포켓몬</span>
+                </button>
+                <div class="side-nav-divider"></div>
+                <button class="side-nav-btn" onclick="switchSection(event, 'image')" title="이미지">
+                    <span class="nav-icon">I</span>
+                    <span class="nav-label">이미지</span>
+                </button>
+                <div class="side-nav-divider"></div>
+                <button class="side-nav-btn" onclick="switchSection(event, 'color')" title="컬러">
+                    <span class="nav-icon">C</span>
+                    <span class="nav-label">컬러</span>
+                </button>
+                <div class="side-nav-divider"></div>
+                <button class="side-nav-btn" onclick="switchSection(event, 'sticker')" title="스티커">
+                    <span class="nav-icon">★</span>
+                    <span class="nav-label">스티커</span>
+                </button>
+            </nav>
+
+            <!-- 우측 입력 창 영역 -->
             <div class="edit-panel-content">
-                <div class="section-title" style="margin-top:0;">트레이너 정보 수정</div>
-                <div class="control-group">
-                    <label>트레이너 이름</label>
-                    <input type="text" id="input-name" placeholder="예: 지우" oninput="syncText('input-name', ['view-name', 'view-p-name'], '트레이너명')">
-                </div>
-                <div class="control-group">
-                    <label>한 줄 문구</label>
-                    <input type="text" id="input-q1" placeholder="예: 가자, 파트너!" oninput="syncText('input-q1', ['view-q1'], '여기에 문구가 표시됩니다.')">
-                </div>
-                <div class="control-group">
-                    <label>나이</label>
-                    <input type="text" id="input-age" placeholder="예: 10세" oninput="syncText('input-age', ['view-p-age'], '-')">
+                
+                <!-- [트레이너 메뉴] -->
+                <div id="sec-name" class="tab-content active">
+                    <div class="section-title">트레이너 정보</div>
+                    <div class="control-group">
+                        <label>트레이너 이름</label>
+                        <input type="text" id="input-name" placeholder="예: 지우" oninput="syncText('input-name', ['view-name', 'view-p-name'], '트레이너명')">
+                    </div>
+                    <div class="control-group">
+                        <label>한 줄 문구</label>
+                        <input type="text" id="input-q1" placeholder="예: 가자, 바다로!" oninput="syncText('input-q1', ['view-q1'], '여기에 문구가 표시됩니다.')">
+                    </div>
+                    <div class="control-group">
+                        <label>나이</label>
+                        <input type="text" id="input-age" placeholder="예: 18세" oninput="syncText('input-age', ['view-p-age'], '-')">
+                    </div>
                 </div>
 
-                <div class="section-title">포켓몬 #1 설정</div>
-                <div class="control-group">
-                    <label>포켓몬 명칭</label>
-                    <input type="text" id="input-p1" placeholder="예: 피카츄 ♂" oninput="syncText('input-p1', ['p1-title'], '포켓몬 #1')">
+                <!-- [포켓몬 메뉴] -->
+                <div id="sec-pokemon" class="tab-content">
+                    <div class="section-title">포켓몬 멤버 설정</div>
+                    <div class="control-group"><label>포켓몬 1</label><input type="text" id="input-p1" placeholder="포켓몬 이름 입력" oninput="syncText('input-p1', ['p1-title'], '포켓몬 #1')"></div>
+                    <div class="control-group"><label>포켓몬 2</label><input type="text" id="input-p2" placeholder="포켓몬 이름 입력" oninput="syncText('input-p2', ['p2-title'], '포켓몬 #2')"></div>
+                    <div class="control-group"><label>포켓몬 3</label><input type="text" id="input-p3" placeholder="포켓몬 이름 입력" oninput="syncText('input-p3', ['p3-title'], '포켓몬 #3')"></div>
                 </div>
+
+                <!-- [이미지 메뉴 (대기)] -->
+                <div id="sec-image" class="tab-content">
+                    <div class="section-title">일러스트 파일 등록</div>
+                    <p class="info-msg">📸 트레이너 및 파티 대형 일러스트 업로드 기능이 들어갈 자리입니다.</p>
+                </div>
+
+                <!-- [컬러 메뉴 (대기)] -->
+                <div id="sec-color" class="tab-content">
+                    <div class="section-title">테마 컬러 및 스킨</div>
+                    <p class="info-msg">🎨 카드 배경색 및 그라데이션 커스텀 기능이 들어갈 자리입니다.</p>
+                </div>
+
+                <!-- [스티커 메뉴 (대기)] -->
+                <div id="sec-sticker" class="tab-content">
+                    <div class="section-title">배지 및 스티커 데코</div>
+                    <p class="info-msg">★ 체육관 배지 또는 미니 스티커 컴포넌트 관리 공간입니다.</p>
+                </div>
+
             </div>
         </div>
 
-        <!-- 4. preview-area (우측 워크스페이스) -->
+        <!-- 4. preview-area -->
         <div class="preview-area">
             <div id="sheet-container">
                 <div class="top-section">
@@ -192,11 +222,11 @@
 
                 <div class="pokemon-grid">
                     <div class="pkm-card"><div class="pkm-header" id="p1-title">포켓몬 #1</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #2</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #3</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #4</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #5</div><div class="pkm-img-slot">?</div></div>
-                    <div class="pkm-card"><div class="pkm-header">포켓몬 #6</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p2-title">포켓몬 #2</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p3-title">포켓몬 #3</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p4-title">포켓몬 #4</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p5-title">포켓몬 #5</div><div class="pkm-img-slot">?</div></div>
+                    <div class="pkm-card"><div class="pkm-header" id="p6-title">포켓몬 #6</div><div class="pkm-img-slot">?</div></div>
                 </div>
             </div>
         </div>
@@ -204,38 +234,44 @@
     </div>
 
     <script>
-        // 1. 왼쪽 편집 패널(사이드바) 열고 닫기 + 아이콘 회전 기능
+        // 1. ✨ 세로 내비게이션 전환 스크립트
+        function switchSection(event, sectionName) {
+            // 버튼 활성화 클래스 스위칭
+            const buttons = document.querySelectorAll('.side-nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // 해당하는 컨텐츠 박스 띄우기
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // 매칭되는 ID 서치 (sec-name, sec-pokemon 등)
+            document.getElementById(`sec-${sectionName}`).classList.add('active');
+        }
+
+        // 2. 패널 열고 닫기
         function togglePanel() {
             const panel = document.getElementById('edit-panel');
             const icon = document.getElementById('panel-toggle-icon');
-            
             panel.classList.toggle('hide');
-            
-            if (panel.classList.contains('hide')) {
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                icon.style.transform = 'rotate(0deg)';
-            }
+            icon.style.transform = panel.classList.contains('hide') ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
-        // 2. 입력값 실시간 동기화 (빈칸 방지 기본값 기능 추가)
+        // 3. 텍스트 실시간 연동
         function syncText(inputId, viewIds, defaultText) {
             const value = document.getElementById(inputId).value;
             viewIds.forEach(id => {
                 const element = document.getElementById(id);
-                if (element) {
-                    // 유저가 텍스트를 다 지우면 기본 안내 텍스트(defaultText)를 띄워 레이아웃이 깨지지 않게 방지합니다.
-                    element.innerText = value.trim() !== "" ? value : defaultText;
-                }
+                if (element) element.innerText = value.trim() !== "" ? value : defaultText;
             });
         }
 
-        // 3. PNG 이미지로 저장하기
+        // 4. PNG 저장
         function saveAsPNG() {
             const sheet = document.getElementById('sheet-container');
             html2canvas(sheet, { useCORS: true, scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'my-trainer-sheet.png';
+                link.download = 'trainer-sheet.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
